@@ -2,3 +2,6 @@
 name = "core_dump_print_picture_bot"
 version = "0.1.0"
 authors = ["vp"]
+
+[dependencies]
+telegram-bot = "0.3"
