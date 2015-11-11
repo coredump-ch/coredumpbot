@@ -1,4 +1,4 @@
-= coredumpbot
+# coredumpbot
 
 Start the Bot like this:
 
