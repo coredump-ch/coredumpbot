@@ -1,7 +1,9 @@
 [package]
-name = "core_dump_print_picture_bot"
+name = "core_dump_bot"
 version = "0.1.0"
-authors = ["vp"]
+authors = [
+  "Stefan Schindler <stefan@estada.ch>"
+]
 
 [dependencies]
 telegram-bot = "0.3"
