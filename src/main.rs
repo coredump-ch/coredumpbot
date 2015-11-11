@@ -1,6 +1,11 @@
 extern crate telegram_bot;
+extern crate hyper;
+extern crate rustc_serialize;
 
-use telegram_bot::*;
+use telegram_bot::{Api, ListeningMethod, MessageType, ListeningAction};
+use hyper::{Client};
+use rustc_serialize::json::Json;
+use std::io::{Read};
 
 fn main() {
     // Create bot, test simple API call and print bot information
@@ -26,7 +31,7 @@ fn main() {
                     let ts:&str = t.trim();
                     
                     match ts {
-                      "/getPicture" => { 
+                      "/getPicture" | "/get_picture" => { 
                       try!(api.send_photo(
                                 m.chat.id(),
                                 path_to_picture.clone(), // Path
@@ -38,7 +43,19 @@ fn main() {
                       "/help" => {
                         try!(api.send_message(
                                   m.chat.id(),
-                                  format!("No such help 😜\nuse /getPicture"),
+                                  format!("No such help 😜\nuse /getPicture for a snapshot of the 3d printer.\nuse /crowd for an update on people now present"),
+                                  None, None, None
+                        ));
+                      },
+                      "/crowd" => {
+                        let s = match fetch_people_now_present() {
+                          Ok(people_now_present) if people_now_present > 0 => format!("{} are inhouse", people_now_present),
+                          Ok(_) => format!("Coredump is empty."),
+                          Err(e) => format!("An error occured 😕\n{}", e),
+                        };
+                        try!(api.send_message(
+                                  m.chat.id(),
+                                  s,
                                   None, None, None
                         ));
                       },
@@ -70,4 +87,68 @@ fn main() {
     if let Err(e) = res {
         println!("An error occured: {}", e);
     }
+}
+
+fn fetch_people_now_present() -> std::result::Result<i64, String> {
+  let client = Client::new();
+
+  match client.get("https://status.coredump.ch/").send() {
+    Err(e) => Err(format!("{}", e)),
+    Ok(mut res) => {
+      
+      let mut body = String::new();
+      match res.read_to_string(&mut body) {
+        Err(e) => { Err(format!("unable to connect to server, try again later\n{}", e)) },
+        Ok(_/*len*/) => {
+          
+          match Json::from_str( &*body ) {
+            Err(e) => Err(format!("unable to parse server response: {:?}", e)),
+            Ok(data) => {
+              
+              match data.as_object() {
+                None => Err(format!("response must be a Json Object!")),
+                Some(obj) => {
+                  
+                  match obj.get("sensors") {
+                    None => Err(format!("response contains no sensors")),
+                    Some(sensors) => {
+                      match sensors.as_object() {
+                        None => Err(format!("response.sensors must be an Object")),
+                        Some(sensors) => {
+                          match sensors.get("people_now_present") {
+                            None => Err(format!("response contains no sensors.people_now_present")),
+                            Some(people_now_present) => match people_now_present.as_array() {
+                              None => Err(format!("response.sensors.people_now_present is not an Array")),
+                              Some(people_now_present) => {
+                                
+                                match people_now_present[0].as_object() {
+                                  None => Err(format!("response.sensors.people_now_present[0] is not an Object")),
+                                  Some(people_now_present) => {
+                                    
+                                    match people_now_present.get("value") {
+                                      None => Err(format!("response.sensors.people_now_present[0] has no Member calles 'value'")),
+                                      Some(people_now_present) =>
+                                        
+                                        match people_now_present.as_i64() {
+                                          None => Err(format!("response.sensors.people_now_present[0].value is no Integer")),
+                                          Some(people_now_present) => Ok(people_now_present)
+                                        }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }
