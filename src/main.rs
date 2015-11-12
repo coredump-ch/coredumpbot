@@ -49,7 +49,8 @@ fn main() {
                       },
                       "/crowd" => {
                         let s = match fetch_people_now_present() {
-                          Ok(people_now_present) if people_now_present > 0 => format!("{} people are present!", people_now_present),
+                          Ok(people_now_present) if people_now_present > 1 => format!("{} people are present!", people_now_present),
+                          Ok(people_now_present) if people_now_present == 1 => format!("One person is present!"),
                           Ok(_) => format!("Nobody here right now."),
                           Err(e) => format!("An error occured 😕\n{}", e),
                         };
