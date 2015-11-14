@@ -8,6 +8,10 @@ use rustc_serialize::json::Json;
 use std::io::{Read};
 
 fn main() {
+    let max_backoff_seconds = 128;
+    let min_backoff_seconds = 1;
+    let mut backoff_seconds = min_backoff_seconds;
+    
     loop {
         // Create bot, test simple API call and print bot information
         let api = Api::from_env("TELEGRAM_BOT_TOKEN").unwrap();
@@ -19,6 +23,10 @@ fn main() {
 
         // Fetch new updates via long poll method
         let res = listener.listen(|u| {
+            // Restore backoff_seconds, since it works agan
+            backoff_seconds = min_backoff_seconds;
+            
+            
             // If the received update contains a message...
             if let Some(m) = u.message {
                 let name = m.from.first_name;
@@ -87,9 +95,13 @@ fn main() {
         });
 
         if let Err(e) = res {
-            println!("An error occured: {}", e);
+            println!("An error occured: {}\nresting {} Seconds", e, backoff_seconds);
             // Rest for 10 Seconds
-            std::thread::sleep_ms(10 * 1000);
+            std::thread::sleep_ms(backoff_seconds * 1000);
+            
+            if backoff_seconds < max_backoff_seconds {
+                backoff_seconds *= 2;
+            }
         }
     }
 }
