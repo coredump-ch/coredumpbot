@@ -48,11 +48,11 @@ fn main() {
                                     None, None, None
                             ));
                         },
-                        "/crowd" => {
+                        "/crowd"| "/status" => {
                             let s = match fetch_people_now_present() {
-                            Ok(people_now_present) if people_now_present > 1 => format!("{} people are present!", people_now_present),
-                            Ok(people_now_present) if people_now_present == 1 => format!("One person is present!"),
-                            Ok(_) => format!("Nobody here right now."),
+                            Ok(people_now_present) if people_now_present > 1 =>  format!("Coredump is open\n{} people are present!", people_now_present),
+                            Ok(people_now_present) if people_now_present == 1 => format!("Coredump is open\nOne person is present!"),
+                            Ok(_) => format!("Coredump is closed\nNobody here right now."),
                             Err(e) => format!("An error occured 😕\n{}", e),
                             };
                             try!(api.send_message(

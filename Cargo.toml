@@ -1,6 +1,6 @@
 [package]
 name = "coredump_bot"
-version = "0.2.0"
+version = "0.2.1"
 authors = [
   "Stefan Schindler <stefan@estada.ch>"
 ]
