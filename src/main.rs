@@ -48,7 +48,7 @@ fn main() {
                                     None, None, None
                             ));
                         },
-                        "/crowd" => {
+                        "/crowd"| "/status" => {
                             let s = match fetch_people_now_present() {
                             Ok(people_now_present) if people_now_present > 1 => format!("{} people are present!", people_now_present),
                             Ok(people_now_present) if people_now_present == 1 => format!("One person is present!"),
