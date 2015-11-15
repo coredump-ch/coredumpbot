@@ -10,10 +10,13 @@
 //! SensorString    := "temperature" | "door_locked" | "barometer" | "radiation.alpha" | "radiation.beta" | "radiation.gamma" | "radiation.beta_gamma" | "humidity" | "beverage_supply" | "power_consumption" | "wind" | "network_connections" | "account_balance" | "total_member_count" | "people_now_present"
 //! OptionalInteger := Integer | ɛ
 //! Integer         := [0-9]*
-//! Duration        := Real OptionalTimeSuffix
+//! Duration        := Real TimeSuffix
+//! TimeSuffix      := "m" | "h" | "d"
 //! Real            := Integer "." Integer | Integer
 //! Cancel          := "cancel"
 //! InvalidSyntax   := *
+
+// ===========================================================================
 
 use std::time::Duration;
 
