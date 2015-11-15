@@ -95,7 +95,7 @@ fn main() {
         });
 
         if let Err(e) = res {
-            println!("An error occured: {}\nresting {} Seconds", e, backoff_seconds);
+            println!("An error occured: {}\nRemaining {} Seconds", e, backoff_seconds);
             // Rest for 10 Seconds
             std::thread::sleep_ms(backoff_seconds * 1000);
             
