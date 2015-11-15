@@ -1,3 +1,7 @@
+//! # CoredumpBot
+//! 
+//! Works with status.coredump.ch and api.telegram.org
+
 extern crate telegram_bot;
 extern crate hyper;
 extern crate rustc_serialize;
@@ -6,6 +10,9 @@ use telegram_bot::{Api, ListeningMethod, MessageType, ListeningAction};
 use hyper::{Client};
 use rustc_serialize::json::Json;
 use std::io::{Read};
+
+mod user_input_compiler;
+use user_input_compiler::Input;
 
 fn main() {
     loop {
