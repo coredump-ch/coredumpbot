@@ -154,13 +154,6 @@ fn unimplemented() -> Result<String,Input> {
 }
 
 
-fn tokenize(s :&str) -> Vec<&str> {
-  let mut t :Vec<&str> = Vec::new();
-  
-  t
-}
-
-
 #[cfg(test)]
 mod test {
   use super::*;
@@ -180,13 +173,6 @@ mod test {
     assert!( starts_with(&mut s, "xyz") == false );
     println!("======");
     assert!( starts_with(&mut s, "abcd") );
-  }
-  
-  
-  // =================== Lexer Tests ===================
-  #[test]
-  fn simple() {
-    assert_eq!(vec!["/","status"], super::tokenize("/status") )
   }
   
   // =================== Parser Tests ===================
