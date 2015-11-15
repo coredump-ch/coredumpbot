@@ -70,6 +70,10 @@ fn matchCommandWord(s :&mut Chars) -> Input {
     return Subscribe{ sensor: sensor, duration: duration };
   }
   
+  if starts_with(s, "cancel") {
+    return Cancel;
+  }
+  
   InvalidSyntax( format!("Invalid CommandWord") )
 }
 
@@ -131,17 +135,16 @@ fn collectDuration(s :&mut Chars) -> Result<Duration,Input> {
 
 fn starts_with(it :&mut Chars, con :&str) -> bool {
   let mut steps_taken = 0;
+  let mut iter = it.clone();
   
   for c in con.chars() {
     steps_taken += 1;
-    if c != it.next().unwrap_or('/') {
-      while steps_taken > 0 {
-        it.next_back();
-        steps_taken -= 1;
-      }
+    if c != iter.next().unwrap_or('/') {
       return false;
     }
   }
+  
+  it.skip(steps_taken);
   
   true
 }
@@ -162,6 +165,22 @@ fn tokenize(s :&str) -> Vec<&str> {
 mod test {
   use super::*;
   use super::Input::*;
+  use super::starts_with;
+  
+  
+  // =================== Util Tests ===================
+  #[test]
+  fn starts_with_one() {
+    let mut s = "abcdef".chars();
+    assert!( starts_with(&mut s, "abcd") );
+  }
+  #[test]
+  fn starts_with_two() {
+    let mut s = "abcdef".chars();
+    assert!( starts_with(&mut s, "xyz") == false );
+    println!("======");
+    assert!( starts_with(&mut s, "abcd") );
+  }
   
   
   // =================== Lexer Tests ===================
@@ -225,6 +244,14 @@ mod test {
         assert_eq!("people_now_present", sensor);
         assert_eq!(7 * 60 * 60 * 24 * 7, duration.as_secs());
       },
+      _ => assert!(false)
+    }
+  }
+  
+  #[test]
+  fn cancel() {
+    match Input::from( format!("/cancel") ) {
+      Cancel => assert!(true),
       _ => assert!(false)
     }
   }
