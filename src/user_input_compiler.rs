@@ -20,6 +20,7 @@
 
 use std::time::Duration;
 
+#[derive(Debug)]
 pub enum Input {
   Status,
   Subscribe{ sensor: String, duration: Duration },
@@ -27,23 +28,49 @@ pub enum Input {
   InvalidSyntax( String ),
 }
 
+use self::Input::*;
+
 impl From<String> for Input {
   /// Start the Parser/Compiler
   fn from(s :String) -> Input {
     let s = s.trim();
     
-    Input::InvalidSyntax( format!("") )
+    if s.len() == 0 {
+      return InvalidSyntax( format!("Empty Request") );
+    }
+    
+    //let mut tokens = tokenize(s);
+    
+    InvalidSyntax( format!("") )
   }
 }
+
+
+fn tokenize(s :&str) -> Vec<&str> {
+  let mut t :Vec<&str> = Vec::new();
+  
+  t
+}
+
 
 #[cfg(test)]
 mod test {
   use super::*;
+  use super::Input::*;
+  
+  
+  // =================== Lexer Tests ===================
+  #[test]
+  fn simple() {
+    assert_eq!(vec!["/","status"], super::tokenize("/status") )
+  }
+  
+  // =================== Parser Tests ===================
   
   #[test]
   fn empty_2_fail() {
     match Input::from( format!("") ) {
-      Input::InvalidSyntax(m) => assert_eq!("Empty request", m),
+      InvalidSyntax(m) => assert_eq!("Empty Request", m),
       _ => assert!(false),
     }
   }
@@ -51,7 +78,7 @@ mod test {
   #[test]
   fn status() {
     match Input::from( format!("/status") ) {
-      Input::Status => assert!(true),
+      Status => assert!(true),
       _ => assert!(false)
     }
   }
@@ -59,7 +86,7 @@ mod test {
   #[test]
   fn crowd() {
     match Input::from( format!("/crowd") ) {
-      Input::Status => assert!(true),
+      Status => assert!(true),
       _ => assert!(false)
     }
   }
@@ -67,7 +94,7 @@ mod test {
   #[test]
   fn subscribe_pnp_10min() {
     match Input::from( format!("/subscribe people_now_present 10min") ) {
-      Input::Subscribe{ sensor, duration } => {
+      Subscribe{ sensor, duration } => {
         assert_eq!("people_now_present", sensor);
         assert_eq!(10 * 60, duration.as_secs());
       },
@@ -78,7 +105,7 @@ mod test {
   #[test]
   fn subscribe_pnp_2h() {
     match Input::from( format!("/subscribe people_now_present 2h") ) {
-      Input::Subscribe{ sensor, duration } => {
+      Subscribe{ sensor, duration } => {
         assert_eq!("people_now_present", sensor);
         assert_eq!(2 * 60 * 60, duration.as_secs());
       },
@@ -89,7 +116,7 @@ mod test {
   #[test]
   fn subscribe_pnp_7d() {
     match Input::from( format!("/subscribe people_now_present 7d") ) {
-      Input::Subscribe{ sensor, duration } => {
+      Subscribe{ sensor, duration } => {
         assert_eq!("people_now_present", sensor);
         assert_eq!(7 * 60 * 60 * 24 * 7, duration.as_secs());
       },
