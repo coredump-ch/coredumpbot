@@ -1,15 +1,19 @@
 //! # user_input_compiler
 //!
-//! Parses Input with this Grammer after trimming the Input:
+//! Parses Input with this Grammer after trimming the Input and ignoring Whitespaces:
 //! 
-//! Command      := "/" CommandWord
-//! CommandWord  := Status | Subscribe | Cancel | InvalidSyntax
-//! Status       := "status" | "crowd"
-//! Subscribe    := "subscribe" SensorString Duration
-//! SensorString := "... TODO Space API ..."
-//! Duration     := ... TODO ...
-//! Cancel       := "cancel"
-//! InvalidSyntax:= *
+//! Command         := "/" CommandWord
+//! CommandWord     := Status | Subscribe | Cancel | InvalidSyntax
+//! Status          := "status" | "crowd"
+//! Subscribe       := "subscribe" SensorSelector Duration
+//! SensorSelector  := SensorString OptionalNum
+//! SensorString    := "temperature" | "door_locked" | "barometer" | "radiation.alpha" | "radiation.beta" | "radiation.gamma" | "radiation.beta_gamma" | "humidity" | "beverage_supply" | "power_consumption" | "wind" | "network_connections" | "account_balance" | "total_member_count" | "people_now_present"
+//! OptionalInteger := Integer | ɛ
+//! Integer         := [0-9]*
+//! Duration        := Real OptionalTimeSuffix
+//! Real            := Integer "." Integer | Integer
+//! Cancel          := "cancel"
+//! InvalidSyntax   := *
 
 use std::time::Duration;
 
