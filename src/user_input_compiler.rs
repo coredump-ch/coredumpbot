@@ -7,7 +7,7 @@
 //! Status          := "status" | "crowd"
 //! Subscribe       := "subscribe" SensorSelector Duration
 //! SensorSelector  := SensorString OptionalNum
-//! SensorString    := "temperature" | "door_locked" | "barometer" | "radiation.alpha" | "radiation.beta" | "radiation.gamma" | "radiation.beta_gamma" | "humidity" | "beverage_supply" | "power_consumption" | "wind" | "network_connections" | "account_balance" | "total_member_count" | "people_now_present"
+//! SensorString    := "account_balance" | "barometer" | "beverage_supply" | "door_locked" | "humidity" | "network_connections" | "power_consumption" | "temperature" | "total_member_count" | "radiation.alpha" | "radiation.beta_gamma" | "radiation.beta" | "radiation.gamma" | "people_now_present" | "wind"
 //! OptionalInteger := Integer | ɛ
 //! Integer         := [0-9]*
 //! Duration        := Real TimeSuffix
@@ -29,6 +29,16 @@ pub enum Input {
   InvalidSyntax( String ),
 }
 
+/// like try! but unwraps the Error
+macro_rules! extract {
+    ($expr:expr) => (match $expr {
+        Result::Ok(val) => val,
+        Result::Err(err) => {
+            return err
+        }
+    })
+}
+
 use self::Input::*;
 
 impl From<String> for Input {
@@ -46,13 +56,98 @@ impl From<String> for Input {
       return InvalidSyntax( format!("Command must start with /") );
     }
     
-    matchCommandWord(s)
+    matchCommandWord(&mut s)
   }
 }
 
-fn matchCommandWord(s :Chars) -> Input {
+fn matchCommandWord(s :&mut Chars) -> Input {
+  if starts_with(s, "status") || starts_with(s, "crowd") {
+    return Status;
+  }
+  if starts_with(s, "subscribe") {
+    let sensor = extract!(matchSensorSelector(s));
+    let duration = extract!(collectDuration(s));
+    return Subscribe{ sensor: sensor, duration: duration };
+  }
   
-  InvalidSyntax( format!("") )
+  InvalidSyntax( format!("Invalid CommandWord") )
+}
+
+fn matchSensorSelector(s :&mut Chars) -> Result<String,Input> {
+  if starts_with(s, "account_balance") {
+    return unimplemented();
+  }
+  if starts_with(s, "barometer") {
+    return unimplemented();
+  }
+  if starts_with(s, "beverage_supply") {
+    return unimplemented();
+  }
+  if starts_with(s, "door_locked") {
+    return unimplemented();
+  }
+  if starts_with(s, "humidity") {
+    return unimplemented();
+  }
+  if starts_with(s, "network_connections") {
+    return unimplemented();
+  }
+  if starts_with(s, "power_consumption") {
+    return unimplemented();
+  }
+  if starts_with(s, "temperature") {
+    return unimplemented();
+  }
+  if starts_with(s, "total_member_count") {
+    return unimplemented();
+  }
+  if starts_with(s, "radiation.alpha") {
+    return unimplemented();
+  }
+  if starts_with(s, "radiation.beta_gamma") {
+    return unimplemented();
+  }
+  if starts_with(s, "radiation.beta") {
+    return unimplemented();
+  }
+  if starts_with(s, "radiation.gamma") {
+    return unimplemented();
+  }
+  if starts_with(s, "people_now_present") {
+    return unimplemented();
+  }
+  if starts_with(s, "wind") {
+    return unimplemented();
+  }
+  
+  // TODO OptionalNum
+  
+  Err( InvalidSyntax( format!("Invalid SensorSelector") ) )
+}
+
+fn collectDuration(s :&mut Chars) -> Result<Duration,Input> {
+  Err( InvalidSyntax( format!("Invalid Duration") ) )
+}
+
+fn starts_with(it :&mut Chars, con :&str) -> bool {
+  let mut steps_taken = 0;
+  
+  for c in con.chars() {
+    steps_taken += 1;
+    if c != it.next().unwrap_or('/') {
+      while steps_taken > 0 {
+        it.next_back();
+        steps_taken -= 1;
+      }
+      return false;
+    }
+  }
+  
+  true
+}
+
+fn unimplemented() -> Result<String,Input> {
+  Err( InvalidSyntax( format!("CommandWord not implemented yet") ) )
 }
 
 
