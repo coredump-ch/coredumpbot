@@ -56,17 +56,17 @@ impl From<String> for Input {
       return InvalidSyntax( format!("Command must start with /") );
     }
     
-    matchCommandWord(&mut s)
+    match_command_word(&mut s)
   }
 }
 
-fn matchCommandWord(s :&mut Chars) -> Input {
+fn match_command_word(s :&mut Chars) -> Input {
   if starts_with(s, "status") || starts_with(s, "crowd") {
     return Status;
   }
   if starts_with(s, "subscribe") {
-    let sensor = extract!(matchSensorSelector(s));
-    let duration = extract!(collectDuration(s));
+    let sensor = extract!(match_sensor_selector(s));
+    let duration = extract!(collect_duration(s));
     return Subscribe{ sensor: sensor, duration: duration };
   }
   
@@ -77,7 +77,7 @@ fn matchCommandWord(s :&mut Chars) -> Input {
   InvalidSyntax( format!("Invalid CommandWord") )
 }
 
-fn matchSensorSelector(s :&mut Chars) -> Result<String,Input> {
+fn match_sensor_selector(s :&mut Chars) -> Result<String,Input> {
   if starts_with(s, "account_balance") {
     return unimplemented();
   }
@@ -129,7 +129,7 @@ fn matchSensorSelector(s :&mut Chars) -> Result<String,Input> {
   Err( InvalidSyntax( format!("Invalid SensorSelector") ) )
 }
 
-fn collectDuration(s :&mut Chars) -> Result<Duration,Input> {
+fn collect_duration(s :&mut Chars) -> Result<Duration,Input> {
   Err( InvalidSyntax( format!("Invalid Duration") ) )
 }
 
@@ -167,10 +167,20 @@ mod test {
     let mut s = "abcdef".chars();
     assert!( starts_with(&mut s, "abcd") );
   }
+  
   #[test]
   fn starts_with_two() {
     let mut s = "abcdef".chars();
     assert!( starts_with(&mut s, "xyz") == false );
+    assert!( starts_with(&mut s, "abcd") );
+  }
+  
+  #[test]
+  fn starts_with_four() {
+    let mut s = "abcdef".chars();
+    assert!( starts_with(&mut s, "abcxxx") == false );
+    assert!( starts_with(&mut s, "abcxyz") == false );
+    assert!( starts_with(&mut s, "abcxyz") == false );
     println!("======");
     assert!( starts_with(&mut s, "abcd") );
   }
