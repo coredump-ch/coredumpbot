@@ -19,6 +19,7 @@
 // ===========================================================================
 
 use std::time::Duration;
+use std::str::Chars;
 
 #[derive(Debug)]
 pub enum Input {
@@ -39,10 +40,19 @@ impl From<String> for Input {
       return InvalidSyntax( format!("Empty Request") );
     }
     
-    //let mut tokens = tokenize(s);
+    let mut s = s.chars();
     
-    InvalidSyntax( format!("") )
+    if s.next().unwrap() != '/' {
+      return InvalidSyntax( format!("Command must start with /") );
+    }
+    
+    matchCommandWord(s)
   }
+}
+
+fn matchCommandWord(s :Chars) -> Input {
+  
+  InvalidSyntax( format!("") )
 }
 
 
