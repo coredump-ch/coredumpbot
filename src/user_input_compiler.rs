@@ -28,6 +28,7 @@ pub enum Input {
   Cancel,
   InvalidSyntax( String ),
 }
+use self::Input::*;
 
 /// like try! but unwraps the Error
 macro_rules! extract {
@@ -39,7 +40,6 @@ macro_rules! extract {
     })
 }
 
-use self::Input::*;
 
 impl From<String> for Input {
   /// Start the Parser/Compiler
@@ -66,7 +66,7 @@ fn match_command_word(s :&mut Chars) -> Input {
   }
   if starts_with(s, "subscribe") {
     let sensor = extract!(match_sensor_selector(s));
-    let duration = extract!(collect_duration(s));
+    let duration = extract!(match_duration(s));
     return Subscribe{ sensor: sensor, duration: duration };
   }
   
@@ -129,8 +129,84 @@ fn match_sensor_selector(s :&mut Chars) -> Result<String,Input> {
   Err( InvalidSyntax( format!("Invalid SensorSelector") ) )
 }
 
-fn collect_duration(s :&mut Chars) -> Result<Duration,Input> {
-  Err( InvalidSyntax( format!("Invalid Duration") ) )
+/// Duration        := Real TimeSuffix
+fn match_duration(s :&mut Chars) -> Result<Duration,Input> {
+  let real :f64 = try!(match_real(s));
+  let ts   :i64 = try!(match_timesuffix(s));
+  
+  let duration = Duration::from_secs((real * (ts as f64)) as u64);
+  
+  Ok( duration )
+}
+
+fn match_real(s: &mut Chars) -> Result<f64, Input> {
+  let st :String = try!(collect_real(s));
+  match st.parse::<f64>() {
+    Ok(val) => Ok(val),
+    Err(msg) => Err( InvalidSyntax(format!("Invalid Real: {:?}", msg)) )
+  }
+}
+
+/// Real            := Integer "." Integer | Integer
+fn collect_real(s: &mut Chars) -> Result<String, Input> {
+  let mut i1 = try!( collect_integer(s) );
+  
+  if let Some(punkt) = s.next() {
+    if punkt != '.' {
+      return Err( InvalidSyntax( format!("expected '.' found '{}'", punkt) ) );
+    }
+    let i2 = try!(collect_integer(s));
+    
+    i1 = i1 + "." + &i2;
+  }
+  
+  Ok( i1 )
+}
+
+fn match_integer(s :&mut Chars) -> Result<i64, Input> {
+  let st :String = try!(collect_integer(s));
+  match st.parse::<i64>() {
+    Ok(val) => Ok(val),
+    Err(msg) => Err( InvalidSyntax(format!("Invalid Integer: {:?}", msg)) ),
+  }
+}
+
+/// Integer         := [0-9]*
+fn collect_integer(s :&mut Chars) -> Result<String, Input> {
+  let mut i = format!("");
+  let mut it = s.clone();
+  
+  for c in it {
+    println!("collect_integer: {}", c);
+    match c {
+      ' ' | '\t' | '\r' | '\n' => { /* ignoring */ },
+      '0' ... '9' => i.push( c ),
+      _ => break,
+    }
+  }
+  
+  if i.len() == 0 {
+    Err( InvalidSyntax(format!("Invalid Integer")) )
+  } else {
+    s.skip( i.len() -1 ).next();
+    Ok( i )
+  }
+}
+
+/// TimeSuffix      := "m" | "min" | "h" | "d"
+/// Factor to multiply with Seconds
+fn match_timesuffix(s :&mut Chars) -> Result<i64, Input> {
+  if starts_with(s, "m") || starts_with(s, "min") {
+    return Ok(60);
+  }
+  if starts_with(s, "h") {
+    return Ok(60*60);
+  }
+  if starts_with(s, "d") {
+    return Ok(60*60*24);
+  }
+  
+  Err( InvalidSyntax(format!("Invalid TimeSuffix")) )
 }
 
 fn starts_with(it :&mut Chars, con :&str) -> bool {
@@ -158,7 +234,7 @@ fn unimplemented() -> Result<String,Input> {
 mod test {
   use super::*;
   use super::Input::*;
-  use super::starts_with;
+  use super::{starts_with,match_duration,match_integer,match_real,match_timesuffix};
   
   
   // =================== Util Tests ===================
@@ -181,7 +257,6 @@ mod test {
     assert!( starts_with(&mut s, "abcxxx") == false );
     assert!( starts_with(&mut s, "abcxyz") == false );
     assert!( starts_with(&mut s, "abcxyz") == false );
-    println!("======");
     assert!( starts_with(&mut s, "abcd") );
   }
   
@@ -249,6 +324,49 @@ mod test {
     match Input::from( format!("/cancel") ) {
       Cancel => assert!(true),
       _ => assert!(false)
+    }
+  }
+  
+  #[test]
+  fn integer42() {
+    let mut s = "42".chars();
+    assert_eq!(42, match_integer(&mut s).unwrap());
+  }
+  
+  #[test]
+  fn real6_6() {
+    let mut s = "6.6".chars();
+    match match_real(&mut s) {
+      Ok(v) => assert_eq!(6.6, v),
+      Err(e) => {
+        println!("{:?}", e);
+        assert!(false);
+      },
+    }
+  }
+  
+  #[test]
+  fn real666_666() {
+    let mut s = "666.666".chars();
+    match match_real(&mut s) {
+      Ok(v) => assert_eq!(666.666, v),
+      Err(e) => {
+        println!("{:?}", e);
+        assert!(false);
+      },
+    }
+  }
+  
+  #[test]
+  //#[should_panic(expected = "InvalidSyntax(\"Invalid Integer\")")]
+  fn real6__6() {
+    let mut s = "6..6".chars();
+    match match_real(&mut s) {
+      Ok(v) => assert!(false),
+      Err(e) => {
+        println!("====={:?}", e);
+        assert!(true);
+      },
     }
   }
 }
