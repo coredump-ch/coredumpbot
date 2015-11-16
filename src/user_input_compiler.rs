@@ -82,6 +82,14 @@ fn match_command_word(s :&mut Chars) -> Input {
   
   if starts_with(s, "cancel") {
     return Cancel;
+  } else
+  
+  if starts_with(s, "version") {
+    return Version;
+  } else
+  
+  if starts_with(s, "help") {
+    return Help;
   } else {
   
     return InvalidSyntax( format!("Invalid CommandWord") );
