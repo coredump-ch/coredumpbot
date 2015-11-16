@@ -52,7 +52,7 @@ fn main() {
                         "/help" => {
                             try!(api.send_message(
                                     m.chat.id(),
-                                    format!("No such help 😜\nuse /getPicture for a snapshot of the 3d printer.\nuse /crowd for an update on people now present"),
+                                    format!("No such help 😜\nuse /getPicture or /get_picture for a snapshot of the 3d printer.\nuse /crowd or /status for an update on people now present"),
                                     None, None, None
                             ));
                         },
@@ -80,7 +80,7 @@ fn main() {
                             try!(
                                 api.send_message(
                                     m.chat.id(),
-                                    format!("Unknown Command ..."),
+                                    format!("Unknown Command ... try /help"),
                                     None, None, None)
                             );
                         }, 
@@ -90,7 +90,7 @@ fn main() {
                         try!(
                             api.send_message(
                                 m.chat.id(),
-                                format!("Unknown Command ..."),
+                                format!("Unknown Command ... try /help"),
                                 None, None, None)
                         );
                     }
