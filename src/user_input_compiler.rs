@@ -6,7 +6,7 @@
 //! CommandWord     := Status | Subscribe | Cancel | InvalidSyntax
 //! Status          := "status" | "crowd"
 //! Subscribe       := "subscribe" SensorSelector Duration
-//! SensorSelector  := SensorString OptionalNum
+//! SensorSelector  := SensorString OptionalInteger
 //! SensorString    := "account_balance" | "barometer" | "beverage_supply" | "door_locked" | "humidity" | "network_connections" | "power_consumption" | "temperature" | "total_member_count" | "radiation.alpha" | "radiation.beta_gamma" | "radiation.beta" | "radiation.gamma" | "people_now_present" | "wind"
 //! OptionalInteger := Integer | ɛ
 //! Integer         := [0-9]*
@@ -24,9 +24,14 @@ use std::str::Chars;
 #[derive(Debug)]
 pub enum Input {
   Status,
-  Subscribe{ sensor: String, duration: Duration },
+  Subscribe{ sensor :SensorSelector, duration :Duration },
   Cancel,
   InvalidSyntax( String ),
+}
+#[derive(Debug)]
+pub struct SensorSelector {
+  sensor_selector :String,
+  nth :i64,
 }
 use self::Input::*;
 
@@ -63,70 +68,85 @@ impl From<String> for Input {
 fn match_command_word(s :&mut Chars) -> Input {
   if starts_with(s, "status") || starts_with(s, "crowd") {
     return Status;
-  }
+  } else
   if starts_with(s, "subscribe") {
+    s.skip(9 -1).next();
     let sensor = extract!(match_sensor_selector(s));
     let duration = extract!(match_duration(s));
     return Subscribe{ sensor: sensor, duration: duration };
-  }
+  } else
   
   if starts_with(s, "cancel") {
     return Cancel;
-  }
+  } else {
   
-  InvalidSyntax( format!("Invalid CommandWord") )
+    return InvalidSyntax( format!("Invalid CommandWord") );
+  }
 }
 
-fn match_sensor_selector(s :&mut Chars) -> Result<String,Input> {
+fn match_sensor_selector(s :&mut Chars) -> Result<SensorSelector,Input> {
+  let mut sensor;
+  
+  consume_whitespaces(s);
+  
   if starts_with(s, "account_balance") {
-    return unimplemented();
-  }
+    sensor = "account_balance";
+  } else
   if starts_with(s, "barometer") {
-    return unimplemented();
-  }
+    sensor = "barometer";
+  } else
   if starts_with(s, "beverage_supply") {
-    return unimplemented();
-  }
+    sensor = "beverage_supply";
+  } else
   if starts_with(s, "door_locked") {
-    return unimplemented();
-  }
+    sensor = "door_locked";
+  } else
   if starts_with(s, "humidity") {
-    return unimplemented();
-  }
+    sensor = "humidity";
+  } else
   if starts_with(s, "network_connections") {
-    return unimplemented();
-  }
+    sensor = "network_connections";
+  } else
   if starts_with(s, "power_consumption") {
-    return unimplemented();
-  }
+    sensor = "power_consumption";
+  } else
   if starts_with(s, "temperature") {
-    return unimplemented();
-  }
+    sensor = "temperature";
+  } else
   if starts_with(s, "total_member_count") {
-    return unimplemented();
-  }
+    sensor = "total_member_count";
+  } else
   if starts_with(s, "radiation.alpha") {
-    return unimplemented();
-  }
+    sensor = "radiation.alpha";
+  } else
   if starts_with(s, "radiation.beta_gamma") {
-    return unimplemented();
-  }
+    sensor = "radiation.beta_gamma";
+  } else
   if starts_with(s, "radiation.beta") {
-    return unimplemented();
-  }
+    sensor = "radiation.beta";
+  } else
   if starts_with(s, "radiation.gamma") {
-    return unimplemented();
-  }
+    sensor = "radiation.gamma";
+  } else
   if starts_with(s, "people_now_present") {
-    return unimplemented();
-  }
+    sensor = "people_now_present";
+  } else
   if starts_with(s, "wind") {
-    return unimplemented();
+    sensor = "wind";
+  } else {
+    return Err( InvalidSyntax( format!("Invalid SensorSelector: {}", collect_iterator(s)) ) );
   }
   
-  // TODO OptionalNum
+  println!("sensor: {}", sensor);
   
-  Err( InvalidSyntax( format!("Invalid SensorSelector") ) )
+  // -1 means all in this category
+  let nth = match match_integer(s) {
+    Ok(n) if n > -1 => n,
+    Ok(n) => return Err( InvalidSyntax( format!("Index {} must be positive", n) ) ),
+    Err(e) => -1,
+  };
+  
+  Ok( SensorSelector{ sensor_selector: format!("{}", sensor), nth: nth } )
 }
 
 /// Duration        := Real TimeSuffix
@@ -225,8 +245,30 @@ fn starts_with(it :&mut Chars, con :&str) -> bool {
   true
 }
 
-fn unimplemented() -> Result<String,Input> {
-  Err( InvalidSyntax( format!("CommandWord not implemented yet") ) )
+fn collect_iterator(it :&mut Chars) -> String {
+  let mut s = String::new();
+  
+  for c in it {
+    s.push(c);
+  }
+  
+  s
+}
+
+fn consume_whitespaces(it :&mut Chars) {
+  let mut dry_run = it.clone();
+  let mut skip :usize = 0;
+  
+  for c in dry_run {
+    match c {
+      ' ' | '\t' | '\r' | '\n' => { skip += 1 },
+      _ => break,
+    }
+  }
+  
+  if skip > 0 {
+    it.skip(skip -1).next();
+  }
 }
 
 
@@ -290,8 +332,13 @@ mod test {
   fn subscribe_pnp_10min() {
     match Input::from( format!("/subscribe people_now_present 10min") ) {
       Subscribe{ sensor, duration } => {
-        assert_eq!("people_now_present", sensor);
+        assert_eq!("people_now_present", sensor.sensor_selector);
+        assert_eq!(-1, sensor.nth);
         assert_eq!(10 * 60, duration.as_secs());
+      },
+      InvalidSyntax(msg) => {
+        println!("{}", msg);
+        assert!(false);
       },
       _ => assert!(false)
     }
@@ -301,8 +348,13 @@ mod test {
   fn subscribe_pnp_2h() {
     match Input::from( format!("/subscribe people_now_present 2h") ) {
       Subscribe{ sensor, duration } => {
-        assert_eq!("people_now_present", sensor);
+        assert_eq!("people_now_present", sensor.sensor_selector);
+        assert_eq!(-1, sensor.nth);
         assert_eq!(2 * 60 * 60, duration.as_secs());
+      },
+      InvalidSyntax(msg) => {
+        println!("{}", msg);
+        assert!(false);
       },
       _ => assert!(false)
     }
@@ -312,8 +364,13 @@ mod test {
   fn subscribe_pnp_7d() {
     match Input::from( format!("/subscribe people_now_present 7d") ) {
       Subscribe{ sensor, duration } => {
-        assert_eq!("people_now_present", sensor);
-        assert_eq!(7 * 60 * 60 * 24 * 7, duration.as_secs());
+        assert_eq!("people_now_present", sensor.sensor_selector);
+        assert_eq!(-1, sensor.nth);
+        assert_eq!(7 * 60 * 60 * 24, duration.as_secs());
+      },
+      InvalidSyntax(msg) => {
+        println!("{}", msg);
+        assert!(false);
       },
       _ => assert!(false)
     }
@@ -359,7 +416,7 @@ mod test {
   
   #[test]
   //#[should_panic(expected = "InvalidSyntax(\"Invalid Integer\")")]
-  fn real6__6() {
+  fn real6_punkt_6() {
     let mut s = "6..6".chars();
     match match_real(&mut s) {
       Ok(v) => assert!(false),
