@@ -3,7 +3,7 @@
 //! Parses Input with this Grammer after trimming the Input and ignoring Whitespaces:
 //! 
 //! Command         := "/" CommandWord
-//! CommandWord     := Status | Subscribe | Cancel | InvalidSyntax
+//! CommandWord     := Status | Subscribe | Cancel | Version | Help | InvalidSyntax
 //! Status          := "status" | "crowd"
 //! Subscribe       := "subscribe" SensorSelector Duration
 //! SensorSelector  := SensorString OptionalInteger
@@ -14,6 +14,8 @@
 //! TimeSuffix      := "m" | "min" | "h" | "d"
 //! Real            := Integer "." Integer | Integer
 //! Cancel          := "cancel"
+//! Version         := "version"
+//! Help            := "help"
 //! InvalidSyntax   := *
 
 // ===========================================================================
@@ -26,6 +28,8 @@ pub enum Input {
   Status,
   Subscribe{ sensor :SensorSelector, duration :Duration },
   Cancel,
+  Version,
+  Help,
   InvalidSyntax( String ),
 }
 #[derive(Debug)]
@@ -440,6 +444,22 @@ mod test {
         println!("====={:?}", e);
         assert!(true);
       },
+    }
+  }
+  
+  #[test]
+  fn help() {
+    match Input::from( format!("/help") ) {
+      Help => assert!(true),
+      _ => assert!(false),
+    }
+  }
+  
+  #[test]
+  fn version() {
+    match Input::from( format!("/version") ) {
+      Version => assert!(true),
+      _ => assert!(false),
     }
   }
 }
