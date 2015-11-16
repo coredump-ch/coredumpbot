@@ -1,0 +1,21 @@
+language: rust
+sudo: false
+rust:
+  - stable
+  - beta
+  - nightly
+matrix:
+  allow_failures:
+    - rust: nightly
+script:
+  - cargo test
+  - cargo doc --no-deps
+notifications:
+  irc:
+    channels:
+      - "chat.freenode.net#coredump"
+    on_success: change
+    on_failure: always
+    use_notice: true
+    skip_join: true
+
