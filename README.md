@@ -1,4 +1,5 @@
 # coredumpbot
+[![Build Status](https://travis-ci.org/coredump-ch/coredumpbot.svg?branch=master)](https://travis-ci.org/coredump-ch/coredumpbot)
 
 Start the Bot like this:
 
