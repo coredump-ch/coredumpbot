@@ -76,7 +76,14 @@ fn main() {
                                     None, None, None
                             ));
                         },
-                        _ => { /* ignore */ }, 
+                        _ => {
+                            try!(
+                                api.send_message(
+                                    m.chat.id(),
+                                    format!("Unknown Command ..."),
+                                    None, None, None)
+                            );
+                        }, 
                         }
                     },
                     _ => {
