@@ -76,6 +76,13 @@ fn main() {
                                     None, None, None
                             ));
                         },
+                        "/version" => {
+                            try!(api.send_message(
+                                    m.chat.id(),
+                                    format!("Version: {}", env!("CARGO_PKG_VERSION")),
+                                    None, None, None
+                            ));
+                        },
                         _ => {
                             try!(
                                 api.send_message(
