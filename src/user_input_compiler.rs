@@ -31,7 +31,7 @@ pub enum Input {
 #[derive(Debug)]
 pub struct SensorSelector {
   sensor_selector :String,
-  nth :i64,
+  nth :Option<u64>,
 }
 use self::Input::*;
 
@@ -141,9 +141,9 @@ fn match_sensor_selector(s :&mut Chars) -> Result<SensorSelector,Input> {
   
   // -1 means all in this category
   let nth = match match_integer(s) {
-    Ok(n) if n > -1 => n,
+    Ok(n) if n >= 0 => Some(n as u64),
     Ok(n) => return Err( InvalidSyntax( format!("Index {} must be positive", n) ) ),
-    Err(e) => -1,
+    Err(e) => None,
   };
   
   Ok( SensorSelector{ sensor_selector: format!("{}", sensor), nth: nth } )
@@ -333,7 +333,23 @@ mod test {
     match Input::from( format!("/subscribe people_now_present 10min") ) {
       Subscribe{ sensor, duration } => {
         assert_eq!("people_now_present", sensor.sensor_selector);
-        assert_eq!(-1, sensor.nth);
+        assert_eq!(None, sensor.nth);
+        assert_eq!(10 * 60, duration.as_secs());
+      },
+      InvalidSyntax(msg) => {
+        println!("{}", msg);
+        assert!(false);
+      },
+      _ => assert!(false)
+    }
+  }
+  
+  #[test]
+  fn subscribe_pnp_13_10min() {
+    match Input::from( format!("/subscribe people_now_present 13 10min") ) {
+      Subscribe{ sensor, duration } => {
+        assert_eq!("people_now_present", sensor.sensor_selector);
+        assert_eq!(Some(13), sensor.nth);
         assert_eq!(10 * 60, duration.as_secs());
       },
       InvalidSyntax(msg) => {
@@ -349,7 +365,7 @@ mod test {
     match Input::from( format!("/subscribe people_now_present 2h") ) {
       Subscribe{ sensor, duration } => {
         assert_eq!("people_now_present", sensor.sensor_selector);
-        assert_eq!(-1, sensor.nth);
+        assert_eq!(None, sensor.nth);
         assert_eq!(2 * 60 * 60, duration.as_secs());
       },
       InvalidSyntax(msg) => {
@@ -365,7 +381,7 @@ mod test {
     match Input::from( format!("/subscribe people_now_present 7d") ) {
       Subscribe{ sensor, duration } => {
         assert_eq!("people_now_present", sensor.sensor_selector);
-        assert_eq!(-1, sensor.nth);
+        assert_eq!(None, sensor.nth);
         assert_eq!(7 * 60 * 60 * 24, duration.as_secs());
       },
       InvalidSyntax(msg) => {
