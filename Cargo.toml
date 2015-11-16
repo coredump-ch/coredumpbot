@@ -1,11 +1,11 @@
 [package]
 name = "coredump_bot"
-version = "0.2.1"
+version = "0.2.3"
 authors = [
   "Stefan Schindler <stefan@estada.ch>"
 ]
 
 [dependencies]
-telegram-bot = "0.3"
+telegram-bot = { git = "https://github.com/dns2utf8/telegram-bot.git", branch = "fix_types" }
 hyper = "0.6"
 rustc-serialize = "0.3"

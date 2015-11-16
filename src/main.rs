@@ -15,6 +15,10 @@ mod user_input_compiler;
 use user_input_compiler::Input;
 
 fn main() {
+    let max_backoff_seconds = 128;
+    let min_backoff_seconds = 1;
+    let mut backoff_seconds = min_backoff_seconds;
+    
     loop {
         // Create bot, test simple API call and print bot information
         let api = Api::from_env("TELEGRAM_BOT_TOKEN").unwrap();
@@ -26,6 +30,10 @@ fn main() {
 
         // Fetch new updates via long poll method
         let res = listener.listen(|u| {
+            // Restore backoff_seconds, since it works agan
+            backoff_seconds = min_backoff_seconds;
+            
+            
             // If the received update contains a message...
             if let Some(m) = u.message {
                 let name = m.from.first_name;
@@ -51,7 +59,7 @@ fn main() {
                         "/help" => {
                             try!(api.send_message(
                                     m.chat.id(),
-                                    format!("No such help 😜\nuse /getPicture for a snapshot of the 3d printer.\nuse /crowd for an update on people now present"),
+                                    format!("No such help 😜\nuse /getPicture or /get_picture for a snapshot of the 3d printer.\nuse /crowd or /status for an update on people now present"),
                                     None, None, None
                             ));
                         },
@@ -75,14 +83,28 @@ fn main() {
                                     None, None, None
                             ));
                         },
-                        _ => { /* ignore */ }, 
+                        "/version" => {
+                            try!(api.send_message(
+                                    m.chat.id(),
+                                    format!("Version: {}", env!("CARGO_PKG_VERSION")),
+                                    None, None, None
+                            ));
+                        },
+                        _ => {
+                            try!(
+                                api.send_message(
+                                    m.chat.id(),
+                                    format!("Unknown Command ... try /help"),
+                                    None, None, None)
+                            );
+                        }, 
                         }
                     },
                     _ => {
                         try!(
                             api.send_message(
                                 m.chat.id(),
-                                format!("Unknown Command ..."),
+                                format!("Unknown Command ... try /help"),
                                 None, None, None)
                         );
                     }
@@ -94,9 +116,13 @@ fn main() {
         });
 
         if let Err(e) = res {
-            println!("An error occured: {}", e);
+            println!("An error occured: {}\nSleeping for {} Seconds", e, backoff_seconds);
             // Rest for 10 Seconds
-            std::thread::sleep_ms(10 * 1000);
+            std::thread::sleep_ms(backoff_seconds * 1000);
+            
+            if backoff_seconds < max_backoff_seconds {
+                backoff_seconds *= 2;
+            }
         }
     }
 }
