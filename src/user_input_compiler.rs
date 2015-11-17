@@ -99,7 +99,7 @@ fn match_command_word(s :&mut Chars) -> Input {
 fn match_sensor_selector(s :&mut Chars) -> Result<SensorSelector,Input> {
   let mut sensor;
   
-  consume_whitespaces(s);
+  let w = consume_whitespaces(s);
   
   if starts_with(s, "account_balance") {
     sensor = "account_balance";
@@ -150,6 +150,7 @@ fn match_sensor_selector(s :&mut Chars) -> Result<SensorSelector,Input> {
   }
   
   println!("sensor: {}", sensor);
+  s.skip(sensor.len() -1 +w).next();
   
   // -1 means all in this category
   let nth = match match_integer(s) {
@@ -173,8 +174,12 @@ fn match_duration(s :&mut Chars) -> Result<Duration,Input> {
 
 fn match_real(s: &mut Chars) -> Result<f64, Input> {
   let st :String = try!(collect_real(s));
+  println!("match_real: '{}'", st);
   match st.parse::<f64>() {
-    Ok(val) => Ok(val),
+    Ok(val) => {
+      println!("match_real: {}", val);
+      Ok(val)
+    },
     Err(msg) => Err( InvalidSyntax(format!("Invalid Real: {:?}", msg)) )
   }
 }
@@ -182,14 +187,22 @@ fn match_real(s: &mut Chars) -> Result<f64, Input> {
 /// Real            := Integer "." Integer | Integer
 fn collect_real(s: &mut Chars) -> Result<String, Input> {
   let mut i1 = try!( collect_integer(s) );
+  println!("collect_real.l1: '{}'", i1);
   
-  if let Some(punkt) = s.next() {
+  let mut it = s.clone();
+  
+  if let Some(punkt) = it.next() {
     if punkt != '.' {
-      return Err( InvalidSyntax( format!("expected '.' found '{}'", punkt) ) );
+      println!("collect_real.punkt '{}'", punkt);
+      return Ok( i1 );
+      //return Err( InvalidSyntax( format!("expected '.' found '{}'", punkt) ) );
     }
+    s.next(); // consume '.'
     let i2 = try!(collect_integer(s));
+    println!("collect_real.l2: '{}'", i2);
     
     i1 = i1 + "." + &i2;
+    println!("collect_real.l1: '{}'", i1);
   }
   
   Ok( i1 )
@@ -198,7 +211,11 @@ fn collect_real(s: &mut Chars) -> Result<String, Input> {
 fn match_integer(s :&mut Chars) -> Result<i64, Input> {
   let st :String = try!(collect_integer(s));
   match st.parse::<i64>() {
-    Ok(val) => Ok(val),
+    Ok(val) => {
+      s.skip(st.len() -1).next();
+      println!("match_integer: {}", st);
+      Ok(val)
+    },
     Err(msg) => Err( InvalidSyntax(format!("Invalid Integer: {:?}", msg)) ),
   }
 }
@@ -208,10 +225,12 @@ fn collect_integer(s :&mut Chars) -> Result<String, Input> {
   let mut i = format!("");
   let mut it = s.clone();
   
+  let w = consume_whitespaces(&mut it);
+  
   for c in it {
-    println!("collect_integer: {}", c);
+    println!("collect_integer: '{}'", c);
     match c {
-      ' ' | '\t' | '\r' | '\n' => { /* ignoring */ },
+      //' ' | '\t' | '\r' | '\n' => { /* ignoring */ },
       '0' ... '9' => i.push( c ),
       _ => break,
     }
@@ -220,7 +239,7 @@ fn collect_integer(s :&mut Chars) -> Result<String, Input> {
   if i.len() == 0 {
     Err( InvalidSyntax(format!("Invalid Integer")) )
   } else {
-    s.skip( i.len() -1 ).next();
+    s.skip( i.len() -1 +w).next();
     Ok( i )
   }
 }
@@ -228,6 +247,8 @@ fn collect_integer(s :&mut Chars) -> Result<String, Input> {
 /// TimeSuffix      := "m" | "min" | "h" | "d"
 /// Factor to multiply with Seconds
 fn match_timesuffix(s :&mut Chars) -> Result<i64, Input> {
+  let w = consume_whitespaces(s);
+  println!("match_timesuffix: '{}'", s.clone().collect::<String>());
   if starts_with(s, "m") || starts_with(s, "min") {
     return Ok(60);
   }
@@ -267,7 +288,7 @@ fn collect_iterator(it :&mut Chars) -> String {
   s
 }
 
-fn consume_whitespaces(it :&mut Chars) {
+fn consume_whitespaces(it :&mut Chars) -> usize {
   let mut dry_run = it.clone();
   let mut skip :usize = 0;
   
@@ -281,6 +302,7 @@ fn consume_whitespaces(it :&mut Chars) {
   if skip > 0 {
     it.skip(skip -1).next();
   }
+  skip
 }
 
 
@@ -289,6 +311,7 @@ mod test {
   use super::*;
   use super::Input::*;
   use super::{starts_with,match_duration,match_integer,match_real,match_timesuffix};
+  use std::time::Duration;
   
   
   // =================== Util Tests ===================
@@ -431,10 +454,129 @@ mod test {
   }
   
   #[test]
+  fn real_123_456_() {
+    let mut s = " 123.456 ".chars();
+    match match_real(&mut s) {
+      Ok(v) => assert_eq!(123.456, v),
+      Err(e) => {
+        println!("{:?}", e);
+        assert!(false);
+      },
+    }
+  }
+  
+  #[test]
   fn real666_666() {
     let mut s = "666.666".chars();
     match match_real(&mut s) {
       Ok(v) => assert_eq!(666.666, v),
+      Err(e) => {
+        println!("{:?}", e);
+        assert!(false);
+      },
+    }
+  }
+  
+  #[test]
+  fn real10min() {
+    let mut s = "10min".chars();
+    match match_real(&mut s) {
+      Ok(v) => assert_eq!(10 as f64, v),
+      Err(e) => {
+        println!("{:?}", e);
+        assert!(false);
+      },
+    }
+  }
+  
+  #[test]
+  fn real_duration_10min() {
+    let mut s = " 10min".chars();
+    match match_real(&mut s) {
+      Ok(v) => assert_eq!(10 as f64, v),
+      Err(e) => {
+        println!("{:?}", e);
+        assert!(false);
+      },
+    }
+    match match_timesuffix(&mut s) {
+      Ok(v) => assert_eq!(60, v),
+      Err(e) => {
+        println!("{:?}", e);
+        assert!(false);
+      },
+    }
+  }
+  
+  #[test]
+  fn real_duration_10__min() {
+    let mut s = " 10  min".chars();
+    match match_real(&mut s) {
+      Ok(v) => assert_eq!(10 as f64, v),
+      Err(e) => {
+        println!("{:?}", e);
+        assert!(false);
+      },
+    }
+    match match_timesuffix(&mut s) {
+      Ok(v) => assert_eq!(60, v),
+      Err(e) => {
+        println!("{:?}", e);
+        assert!(false);
+      },
+    }
+  }
+  
+  #[test]
+  fn real_duration__10_5min__() {
+    let mut s = "  10.5min  ".chars();
+    match match_real(&mut s) {
+      Ok(v) => assert_eq!(10.5 as f64, v),
+      Err(e) => {
+        println!("{:?}", e);
+        assert!(false);
+      },
+    }
+    match match_timesuffix(&mut s) {
+      Ok(v) => assert_eq!(60, v),
+      Err(e) => {
+        println!("{:?}", e);
+        assert!(false);
+      },
+    }
+  }
+  
+  #[test]
+  fn real_duration__10_5__min__() {
+    let mut s = "  10.5  min  ".chars();
+    match match_real(&mut s) {
+      Ok(v) => assert_eq!(10.5 as f64, v),
+      Err(e) => {
+        println!("{:?}", e);
+        assert!(false);
+      },
+    }
+    match match_timesuffix(&mut s) {
+      Ok(v) => assert_eq!(60, v),
+      Err(e) => {
+        println!("{:?}", e);
+        assert!(false);
+      },
+    }
+  }
+  
+  #[test]
+  fn real12_3__45_6() {
+    let mut s = "12.3  45.6".chars();
+    match match_real(&mut s) {
+      Ok(v) => assert_eq!(12.3, v),
+      Err(e) => {
+        println!("{:?}", e);
+        assert!(false);
+      },
+    }
+    match match_real(&mut s) {
+      Ok(v) => assert_eq!(45.6, v),
       Err(e) => {
         println!("{:?}", e);
         assert!(false);
