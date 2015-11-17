@@ -152,12 +152,27 @@ fn match_sensor_selector(s :&mut Chars) -> Result<SensorSelector,Input> {
   println!("sensor: {}", sensor);
   s.skip(sensor.len() -1 +w).next();
   
-  // -1 means all in this category
-  let nth = match match_integer(s) {
-    Ok(n) if n >= 0 => Some(n as u64),
-    Ok(n) => return Err( InvalidSyntax( format!("Index {} must be positive", n) ) ),
-    Err(e) => None,
-  };
+  // OptionalInteger
+  let mut it = s.clone();
+  let mut nth = None;
+  if let Ok(n) = match_integer(&mut it) {
+    match it.next() {
+      Some(ws) => {
+        if ws == ' ' || ws == '\t' || ws == '\r' || ws == '\n' {
+          nth = match match_integer(s) {
+            Ok(n) if n >= 0 => Some(n as u64),
+            Ok(n) => return Err( InvalidSyntax( format!("Index {} must be positive", n) ) ),
+            Err(e) => None,
+          };
+        }
+      },
+      None => {
+        nth = None;
+      },
+    }
+  }
+  
+  
   
   Ok( SensorSelector{ sensor_selector: format!("{}", sensor), nth: nth } )
 }
@@ -224,6 +239,8 @@ fn match_integer(s :&mut Chars) -> Result<i64, Input> {
 fn collect_integer(s :&mut Chars) -> Result<String, Input> {
   let mut i = format!("");
   let mut it = s.clone();
+  
+  println!("collect_integer.s: '{}'", s.clone().collect::<String>());
   
   let w = consume_whitespaces(&mut it);
   
@@ -610,6 +627,20 @@ mod test {
     match Input::from( format!("/version") ) {
       Version => assert!(true),
       _ => assert!(false),
+    }
+  }
+  
+  
+  
+  #[test]
+  fn duration_10min() {
+    let mut s = "10min".chars();
+    match match_duration(&mut s) {
+      Ok(v) => assert_eq!(Duration::from_secs(10*60), v),
+      Err(e) => {
+        println!("{:?}", e);
+        assert!(false);
+      },
     }
   }
 }
