@@ -17,3 +17,11 @@ Start the Bot like this:
     rm -rf target
     git pull
     TELEGRAM_BOT_TOKEN=XXXXXXXXXXXXXXXXXXXXXXX cargo run --jobs 8 --release
+
+# Set commands on Telegram
+
+    subscribe - Subscribe to a Sensor with an Duration
+    cancel - Cancel Subscription
+    version - Get Version of Bot
+    help - Get Help
+    webcam - Get Picture of Webcam

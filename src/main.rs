@@ -90,6 +90,13 @@ fn main() {
                                     None, None, None
                             ));
                         },
+                        Input::InvalidSyntax( msg ) => {
+                            try!(api.send_message(
+                                    m.chat.id(),
+                                    format!("InvalidSyntax: {}", msg),
+                                    None, None, None
+                            ));
+                        },
                         _ => {
                             try!(
                                 api.send_message(
