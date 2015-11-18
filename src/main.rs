@@ -44,11 +44,11 @@ fn main() {
                         // Print received text message to stdout
                         println!("<{}> {}", name, t);
                         let t = t.replace("@CoreDumpBot", "");
-                        let ts:&str = t.trim();
+                        let ts:String = format!("{}", t.trim() );
                         
-                        match ts {
-                        "/getPicture" | "/get_picture" => { 
-                        try!(api.send_photo(
+                        match Input::from(ts) {
+                        Input::WebCam{ nth } => { 
+                            try!(api.send_photo(
                                     m.chat.id(),
                                     path_to_picture.clone(), // Path
                                     Some(caption_to_picture.clone()), // caption
@@ -56,14 +56,14 @@ fn main() {
                                     None  // reply_markup
                             ));
                         },
-                        "/help" => {
+                        Input::Help => {
                             try!(api.send_message(
                                     m.chat.id(),
                                     format!("No such help 😜\nuse /getPicture or /get_picture for a snapshot of the 3d printer.\nuse /crowd or /status for an update on people now present"),
                                     None, None, None
                             ));
                         },
-                        "/crowd"| "/status" => {
+                        Input::Status => {
                             let s = match fetch_people_now_present() {
                             Ok(people_now_present) if people_now_present > 1 =>  format!("Coredump is open\n{} people are present!", people_now_present),
                             Ok(people_now_present) if people_now_present == 1 => format!("Coredump is open\nOne person is present!"),
@@ -76,14 +76,14 @@ fn main() {
                                     None, None, None
                             ));
                         },
-                        "/start" => {
+                        Input::Start => {
                             try!(api.send_message(
                                     m.chat.id(),
                                     format!("Welcome to CoredumpBot\nuse /getPicture for a snapshot of the 3d printer."),
                                     None, None, None
                             ));
                         },
-                        "/version" => {
+                        Input::Version => {
                             try!(api.send_message(
                                     m.chat.id(),
                                     format!("Version: {}", env!("CARGO_PKG_VERSION")),

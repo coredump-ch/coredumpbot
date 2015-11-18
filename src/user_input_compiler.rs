@@ -3,7 +3,7 @@
 //! Parses Input with this Grammer after trimming the Input and ignoring Whitespaces:
 //! 
 //! Command         := "/" CommandWord
-//! CommandWord     := Status | Subscribe | Cancel | Version | Help | InvalidSyntax
+//! CommandWord     := Status | Subscribe | Cancel | Version | Help | WebCam | Start | InvalidSyntax
 //! Status          := "status" | "crowd"
 //! Subscribe       := "subscribe" SensorSelector Duration
 //! SensorSelector  := SensorString OptionalInteger
@@ -16,6 +16,8 @@
 //! Cancel          := "cancel"
 //! Version         := "version"
 //! Help            := "help"
+//! WebCam          := "webcam" OptionalInteger
+//! Start           := "start"
 //! InvalidSyntax   := *
 
 // ===========================================================================
@@ -30,6 +32,8 @@ pub enum Input {
   Cancel,
   Version,
   Help,
+  WebCam{ nth :Option<u64> },
+  Start,
   InvalidSyntax( String ),
 }
 #[derive(Debug)]
@@ -90,6 +94,20 @@ fn match_command_word(s :&mut Chars) -> Input {
   
   if starts_with(s, "help") {
     return Help;
+  } else
+  
+  if starts_with(s, "webcam") {
+    s.skip(6 -1).next();
+    let nth = match match_integer(s) {
+      Ok(n) if n >= 0 => Some(n as u64),
+      Ok(_) => None,
+      Err(e) => None,
+    };
+    return WebCam{ nth: nth };
+  } else
+  
+  if starts_with(s, "start") {
+    return Start;
   } else {
   
     return InvalidSyntax( format!("Invalid CommandWord") );
@@ -636,6 +654,14 @@ mod test {
     }
   }
   
+  #[test]
+  fn start() {
+    match Input::from( format!("/start") ) {
+      Start => assert!(true),
+      _ => assert!(false),
+    }
+  }
+  
   
   
   #[test]
@@ -672,5 +698,30 @@ mod test {
     match_integer(&mut s).unwrap_or(0); // I do not care here
     
     assert_eq!("  bla  ", s.collect::<String>());
+  }
+  
+  
+  
+  #[test]
+  fn webcam() {
+    match Input::from( format!("/webcam") ) {
+      WebCam{ nth } => if let None = nth { assert!(true) } else { assert!(false) },
+      _ => assert!(false),
+    }
+  }
+  
+  #[test]
+  fn webcam_42() {
+    match Input::from( format!("/webcam 42") ) {
+      WebCam{ nth } => {
+        if let Some(nth) = nth { 
+          assert!( if nth == 42 { true } else { println!("wrong Value: {}", nth); false } ) 
+        } else {
+          println!("expected OptionalInteger");
+          assert!(false)
+        }
+      },
+      _ => assert!(false),
+    }
   }
 }
