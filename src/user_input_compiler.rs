@@ -156,11 +156,16 @@ fn match_sensor_selector(s :&mut Chars) -> Result<SensorSelector,Input> {
   let mut it = s.clone();
   let mut nth = None;
   if let Ok(n) = match_integer(&mut it) {
+    println!("potential OptionalInteger: {}", n);
     match it.next() {
       Some(ws) => {
+        println!("ws: '{}'", ws);
         if ws == ' ' || ws == '\t' || ws == '\r' || ws == '\n' {
           nth = match match_integer(s) {
-            Ok(n) if n >= 0 => Some(n as u64),
+            Ok(n) if n >= 0 => {
+              println!("next Integer: {}", n);
+              Some(n as u64)
+            },
             Ok(n) => return Err( InvalidSyntax( format!("Index {} must be positive", n) ) ),
             Err(e) => None,
           };
@@ -227,7 +232,7 @@ fn match_integer(s :&mut Chars) -> Result<i64, Input> {
   let st :String = try!(collect_integer(s));
   match st.parse::<i64>() {
     Ok(val) => {
-      s.skip(st.len() -1).next();
+      //s.skip(st.len() -1).next();
       println!("match_integer: {}", st);
       Ok(val)
     },
@@ -240,9 +245,9 @@ fn collect_integer(s :&mut Chars) -> Result<String, Input> {
   let mut i = format!("");
   let mut it = s.clone();
   
-  println!("collect_integer.s: '{}'", s.clone().collect::<String>());
   
   let w = consume_whitespaces(&mut it);
+  println!("collect_integer.s: '{}', w: '{}'", s.clone().collect::<String>(), w);
   
   for c in it {
     println!("collect_integer: '{}'", c);
@@ -257,6 +262,7 @@ fn collect_integer(s :&mut Chars) -> Result<String, Input> {
     Err( InvalidSyntax(format!("Invalid Integer")) )
   } else {
     s.skip( i.len() -1 +w).next();
+    println!("collect_integer.skip: i.len({}) w({}) skip({}) collect({})", i.len(), w, i.len() -1 +w, s.clone().collect::<String>());
     Ok( i )
   }
 }
@@ -642,5 +648,29 @@ mod test {
         assert!(false);
       },
     }
+  }
+  
+  #[test]
+  fn match_integer_position() {
+    let mut s = "  10  22".chars();
+    match_integer(&mut s).unwrap_or(0); // I do not care here
+    
+    assert_eq!("  22", s.collect::<String>());
+  }
+  
+  #[test]
+  fn match_integer_position_spaces() {
+    let mut s = "  10  ".chars();
+    match_integer(&mut s).unwrap_or(0); // I do not care here
+    
+    assert_eq!("  ", s.collect::<String>());
+  }
+  
+  #[test]
+  fn match_integer_fail_position_spaces() {
+    let mut s = "  bla  ".chars();
+    match_integer(&mut s).unwrap_or(0); // I do not care here
+    
+    assert_eq!("  bla  ", s.collect::<String>());
   }
 }
