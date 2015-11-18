@@ -101,7 +101,7 @@ fn match_command_word(s :&mut Chars) -> Input {
     let nth = match match_integer(s) {
       Ok(n) if n >= 0 => Some(n as u64),
       Ok(_) => None,
-      Err(e) => None,
+      Err(_) => None,
     };
     return WebCam{ nth: nth };
   } else
@@ -115,7 +115,7 @@ fn match_command_word(s :&mut Chars) -> Input {
 }
 
 fn match_sensor_selector(s :&mut Chars) -> Result<SensorSelector,Input> {
-  let mut sensor;
+  let sensor;
   
   let w = consume_whitespaces(s);
   
@@ -185,7 +185,7 @@ fn match_sensor_selector(s :&mut Chars) -> Result<SensorSelector,Input> {
               Some(n as u64)
             },
             Ok(n) => return Err( InvalidSyntax( format!("Index {} must be positive", n) ) ),
-            Err(e) => None,
+            Err(_) => None,
           };
         }
       },
@@ -288,7 +288,7 @@ fn collect_integer(s :&mut Chars) -> Result<String, Input> {
 /// TimeSuffix      := "m" | "min" | "h" | "d"
 /// Factor to multiply with Seconds
 fn match_timesuffix(s :&mut Chars) -> Result<i64, Input> {
-  let w = consume_whitespaces(s);
+  consume_whitespaces(s);
   println!("match_timesuffix: '{}'", s.clone().collect::<String>());
   if starts_with(s, "m") || starts_with(s, "min") {
     return Ok(60);
@@ -330,7 +330,7 @@ fn collect_iterator(it :&mut Chars) -> String {
 }
 
 fn consume_whitespaces(it :&mut Chars) -> usize {
-  let mut dry_run = it.clone();
+  let dry_run = it.clone();
   let mut skip :usize = 0;
   
   for c in dry_run {
