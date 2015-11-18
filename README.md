@@ -24,4 +24,5 @@ Start the Bot like this:
     cancel - Cancel Subscription
     version - Get Version of Bot
     help - Get Help
+    status - Get People now present
     webcam - Get Picture of Webcam
