@@ -59,7 +59,7 @@ fn main() {
                         Input::Help => {
                             try!(api.send_message(
                                     m.chat.id(),
-                                    format!("No such help 😜\nuse /getPicture or /get_picture for a snapshot of the 3d printer.\nuse /crowd or /status for an update on people now present"),
+                                    format!("No such help 😜\nuse /webcam for a snapshot of the 3d printer.\nuse /crowd or /status for an update on people now present"),
                                     None, None, None
                             ));
                         },
@@ -79,7 +79,7 @@ fn main() {
                         Input::Start => {
                             try!(api.send_message(
                                     m.chat.id(),
-                                    format!("Welcome to CoredumpBot\nuse /getPicture for a snapshot of the 3d printer."),
+                                    format!("Welcome to CoredumpBot\nuse /help for a some commands."),
                                     None, None, None
                             ));
                         },
