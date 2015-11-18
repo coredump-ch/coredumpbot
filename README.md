@@ -20,9 +20,9 @@ Start the Bot like this:
 
 # Set commands on Telegram
 
-    subscribe - Subscribe to a Sensor with an Duration
-    cancel - Cancel Subscription
-    version - Get Version of Bot
-    help - Get Help
     status - Get People now present
     webcam - Get Picture of Webcam
+    subscribe - Subscribe to a Sensor with an Duration
+    help - Get Help
+    cancel - Cancel Subscription
+    version - Get Version of Bot
