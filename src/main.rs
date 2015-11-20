@@ -5,6 +5,7 @@
 extern crate telegram_bot;
 extern crate hyper;
 extern crate rustc_serialize;
+extern crate spaceapi;
 
 use telegram_bot::{Api, ListeningMethod, MessageType, ListeningAction};
 use hyper::{Client};
@@ -13,6 +14,8 @@ use std::io::{Read};
 
 mod user_input_compiler;
 use user_input_compiler::Input;
+
+mod spaceapi_client;
 
 fn main() {
     let max_backoff_seconds = 128;
