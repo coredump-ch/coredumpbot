@@ -137,7 +137,7 @@ fn main() {
 fn fetch_people_now_present() -> std::result::Result<i64, String> {
   let client = Client::new();
 
-  match client.get("https://status.coredump.ch/").send() {
+  match client.get("https://status.crdmp.ch/").send() {
     Err(e) => Err(format!("client.get() error:\n{}", e)),
     Ok(mut res) => {
       
