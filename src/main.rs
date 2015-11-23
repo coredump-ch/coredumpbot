@@ -16,11 +16,8 @@ use user_input_compiler::Input;
 mod spaceapi_client;
 use spaceapi_client::fetch_people_now_present;
 
-<<<<<<< HEAD
-=======
 mod grammar;
 
->>>>>>> grammer
 fn main() {
     let max_backoff_seconds = 128;
     let min_backoff_seconds = 1;

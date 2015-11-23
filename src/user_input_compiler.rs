@@ -173,21 +173,21 @@ fn match_sensor_selector(s :&mut Chars) -> Result<SensorSelector,Input> {
     return Err( InvalidSyntax( format!("Invalid SensorSelector: {}", collect_iterator(s)) ) );
   }
   
-  println!("sensor: {}", sensor);
+  //println!("sensor: {}", sensor);
   s.skip(sensor.len() -1 +w).next();
   
   // OptionalInteger
   let mut it = s.clone();
   let mut nth = None;
   if let Ok(n) = match_integer(&mut it) {
-    println!("potential OptionalInteger: {}", n);
+    //println!("potential OptionalInteger: {}", n);
     match it.next() {
       Some(ws) => {
-        println!("ws: '{}'", ws);
+        //println!("ws: '{}'", ws);
         if ws == ' ' || ws == '\t' || ws == '\r' || ws == '\n' {
           nth = match match_integer(s) {
             Ok(n) if n >= 0 => {
-              println!("next Integer: {}", n);
+              //println!("next Integer: {}", n);
               Some(n as u64)
             },
             Ok(n) => return Err( InvalidSyntax( format!("Index {} must be positive", n) ) ),
@@ -218,10 +218,8 @@ fn match_duration(s :&mut Chars) -> Result<Duration,Input> {
 
 fn match_real(s: &mut Chars) -> Result<f64, Input> {
   let st :String = try!(collect_real(s));
-  println!("match_real: '{}'", st);
   match st.parse::<f64>() {
     Ok(val) => {
-      println!("match_real: {}", val);
       Ok(val)
     },
     Err(msg) => Err( InvalidSyntax(format!("Invalid Real: {:?}", msg)) )
@@ -231,22 +229,17 @@ fn match_real(s: &mut Chars) -> Result<f64, Input> {
 /// Real            := Integer "." Integer | Integer
 fn collect_real(s: &mut Chars) -> Result<String, Input> {
   let mut i1 = try!( collect_integer(s) );
-  println!("collect_real.l1: '{}'", i1);
   
   let mut it = s.clone();
   
   if let Some(punkt) = it.next() {
     if punkt != '.' {
-      println!("collect_real.punkt '{}'", punkt);
       return Ok( i1 );
-      //return Err( InvalidSyntax( format!("expected '.' found '{}'", punkt) ) );
     }
     s.next(); // consume '.'
     let i2 = try!(collect_integer(s));
-    println!("collect_real.l2: '{}'", i2);
     
     i1 = i1 + "." + &i2;
-    println!("collect_real.l1: '{}'", i1);
   }
   
   Ok( i1 )
@@ -257,7 +250,6 @@ fn match_integer(s :&mut Chars) -> Result<i64, Input> {
   match st.parse::<i64>() {
     Ok(val) => {
       //s.skip(st.len() -1).next();
-      println!("match_integer: {}", st);
       Ok(val)
     },
     Err(msg) => Err( InvalidSyntax(format!("Invalid Integer: {:?}", msg)) ),
@@ -271,12 +263,10 @@ fn collect_integer(s :&mut Chars) -> Result<String, Input> {
   
   
   let w = consume_whitespaces(&mut it);
-  println!("collect_integer.s: '{}', w: '{}'", s.clone().collect::<String>(), w);
   
   for c in it {
     println!("collect_integer: '{}'", c);
     match c {
-      //' ' | '\t' | '\r' | '\n' => { /* ignoring */ },
       '0' ... '9' => i.push( c ),
       _ => break,
     }
@@ -286,7 +276,6 @@ fn collect_integer(s :&mut Chars) -> Result<String, Input> {
     Err( InvalidSyntax(format!("Invalid Integer")) )
   } else {
     s.skip( i.len() -1 +w).next();
-    println!("collect_integer.skip: i.len({}) w({}) skip({}) collect({})", i.len(), w, i.len() -1 +w, s.clone().collect::<String>());
     Ok( i )
   }
 }
@@ -295,7 +284,7 @@ fn collect_integer(s :&mut Chars) -> Result<String, Input> {
 /// Factor to multiply with Seconds
 fn match_timesuffix(s :&mut Chars) -> Result<i64, Input> {
   consume_whitespaces(s);
-  println!("match_timesuffix: '{}'", s.clone().collect::<String>());
+  
   if starts_with(s, "m") || starts_with(s, "min") {
     return Ok(60);
   }

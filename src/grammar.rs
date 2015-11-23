@@ -6,7 +6,7 @@ use std::fs::File;
 /// Returns everything from "src/user_input_compiler.rs" util it passes an empty Line.
 pub fn get_grammar_string() -> String {
   let f = match File::open("src/user_input_compiler.rs") {
-    Ok(f) => { println!("grammar::File::open"); f },
+    Ok(f) => f,
     Err(e) => return format!("grammar::open error: {:?}", e),
   };
   let mut reader = BufReader::new(f);
@@ -17,10 +17,10 @@ pub fn get_grammar_string() -> String {
     let mut buffer = String::new();
     // read a line into buffer
     match reader.read_line(&mut buffer) {
-      Ok(v) => { println!("grammar::read_line: {:?}", v); },
+      Ok(_) => {},
       Err(e) => return format!("grammar::read_line error: {:?}", e),
     }
-    println!("buffer: {:?}", buffer);
+    
     grammar = grammar + &*buffer;
     if buffer == "\n" {
       return grammar;
