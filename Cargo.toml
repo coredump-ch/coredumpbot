@@ -9,4 +9,4 @@ authors = [
 telegram-bot = { git = "https://github.com/dns2utf8/telegram-bot.git", branch = "fix_types" }
 hyper = "0.6"
 rustc-serialize = "0.3"
-spaceapi = "0.1"
+spaceapi = { git = "https://github.com/coredump-ch/spaceapi-rs.git", branch = "master" }
