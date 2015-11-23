@@ -16,6 +16,8 @@ use user_input_compiler::Input;
 mod spaceapi_client;
 use spaceapi_client::fetch_people_now_present;
 
+mod grammar;
+
 fn main() {
     let max_backoff_seconds = 128;
     let min_backoff_seconds = 1;
@@ -61,16 +63,16 @@ fn main() {
                         Input::Help => {
                             try!(api.send_message(
                                     m.chat.id(),
-                                    format!("No such help 😜\nuse /webcam for a snapshot of the 3d printer.\nuse /crowd or /status for an update on people now present"),
+                                    format!("No such help 😜\nuse /webcam for a snapshot of the 3d printer.\nuse /crowd or /status for an update on people now present\nuse /grammar to receive the spec"),
                                     None, None, None
                             ));
                         },
                         Input::Status => {
                             let s = match fetch_people_now_present() {
-                            Ok(people_now_present) if people_now_present > 1 =>  format!("Coredump is open\n{} people are present!", people_now_present),
-                            Ok(people_now_present) if people_now_present == 1 => format!("Coredump is open\nOne person is present!"),
-                            Ok(_) => format!("Coredump is closed\nNobody here right now."),
-                            Err(e) => format!("An error occured 😕\n{}", e),
+                                Ok(people_now_present) if people_now_present > 1 =>  format!("Coredump is open\n{} people are present!", people_now_present),
+                                Ok(people_now_present) if people_now_present == 1 => format!("Coredump is open\nOne person is present!"),
+                                Ok(_) => format!("Coredump is closed\nNobody here right now."),
+                                Err(e) => format!("An error occured 😕\n{}", e),
                             };
                             try!(api.send_message(
                                     m.chat.id(),
@@ -92,10 +94,17 @@ fn main() {
                                     None, None, None
                             ));
                         },
+                        Input::Grammar => {
+                            try!(api.send_message(
+                                    m.chat.id(),
+                                    grammar::get_grammar_string(),
+                                    None, None, None
+                            ));
+                        },
                         Input::InvalidSyntax( msg ) => {
                             try!(api.send_message(
                                     m.chat.id(),
-                                    format!("InvalidSyntax: {}", msg),
+                                    format!("InvalidSyntax: {}\ntry /grammar", msg),
                                     None, None, None
                             ));
                         },
