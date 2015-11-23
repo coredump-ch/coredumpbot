@@ -6,6 +6,7 @@ extern crate telegram_bot;
 extern crate hyper;
 extern crate rustc_serialize;
 extern crate spaceapi;
+extern crate env_logger;
 
 use telegram_bot::{Api, ListeningMethod, MessageType, ListeningAction};
 use rustc_serialize::json::Json;
@@ -19,6 +20,7 @@ use spaceapi_client::fetch_people_now_present;
 mod grammar;
 
 fn main() {
+    env_logger::init().unwrap();
     let max_backoff_seconds = 128;
     let min_backoff_seconds = 1;
     let mut backoff_seconds = min_backoff_seconds;
