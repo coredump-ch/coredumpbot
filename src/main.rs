@@ -7,6 +7,8 @@ extern crate hyper;
 extern crate rustc_serialize;
 extern crate spaceapi;
 extern crate env_logger;
+#[macro_use]
+extern crate log;
 
 use telegram_bot::{Api, ListeningMethod, MessageType, ListeningAction};
 use rustc_serialize::json::Json;
@@ -28,7 +30,7 @@ fn main() {
     loop {
         // Create bot, test simple API call and print bot information
         let api = Api::from_env("TELEGRAM_BOT_TOKEN").unwrap();
-        println!("getMe: {:?}", api.get_me());
+        info!("getMe: {:?}", api.get_me());
         let mut listener = api.listener(ListeningMethod::LongPoll(None));
         
         let path_to_picture :String = "rust-logo-blk.png".to_string();
@@ -48,7 +50,7 @@ fn main() {
                 match m.msg {
                     MessageType::Text(t) => {
                         // Print received text message to stdout
-                        println!("<{}> {}", name, t);
+                        info!("<{}> {}", name, t);
                         let t = t.replace("@CoreDumpBot", "");
                         let ts:String = format!("{}", t.trim() );
                         
@@ -136,7 +138,7 @@ fn main() {
         });
 
         if let Err(e) = res {
-            println!("An error occured: {}\nSleeping for {} Seconds", e, backoff_seconds);
+            warn!("An error occured: {}\nSleeping for {} Seconds", e, backoff_seconds);
             // Rest for 10 Seconds
             std::thread::sleep_ms(backoff_seconds * 1000);
             
