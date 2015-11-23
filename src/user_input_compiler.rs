@@ -1,9 +1,9 @@
 //! # user_input_compiler
 //!
-//! Parses Input with this Grammer after trimming the Input and ignoring Whitespaces:
+//! Parses Input with this Grammar after trimming the Input and ignoring Whitespaces:
 //! 
 //! Command         := "/" CommandWord
-//! CommandWord     := Status | Subscribe | Cancel | Version | Help | WebCam | Start | InvalidSyntax
+//! CommandWord     := Status | Subscribe | Cancel | Version | Help | WebCam | Start | Grammar | InvalidSyntax
 //! Status          := "status" | "crowd"
 //! Subscribe       := "subscribe" SensorSelector Duration
 //! SensorSelector  := SensorString OptionalInteger
@@ -18,6 +18,7 @@
 //! Help            := "help"
 //! WebCam          := "webcam" OptionalInteger
 //! Start           := "start"
+//! Grammar         := "grammar"
 //! InvalidSyntax   := *
 
 // ===========================================================================
@@ -34,6 +35,7 @@ pub enum Input {
   Help,
   WebCam{ nth :Option<u64> },
   Start,
+  Grammar,
   InvalidSyntax( String ),
 }
 #[derive(Debug)]
@@ -105,6 +107,10 @@ fn match_command_word(s :&mut Chars) -> Input {
     };
     return WebCam{ nth: nth };
   } else
+  
+  if starts_with(s, "grammar") {
+    return Grammar;
+  } else 
   
   if starts_with(s, "start") {
     return Start;
@@ -721,6 +727,16 @@ mod test {
           assert!(false)
         }
       },
+      _ => assert!(false),
+    }
+  }
+  
+  
+  
+  #[test]
+  fn grammar() {
+    match Input::from( format!("/grammar") ) {
+      Grammar => assert!(true),
       _ => assert!(false),
     }
   }
