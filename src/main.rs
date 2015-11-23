@@ -16,7 +16,7 @@ use user_input_compiler::Input;
 mod spaceapi_client;
 use spaceapi_client::fetch_people_now_present;
 
-mod grammer;
+mod grammar;
 
 fn main() {
     let max_backoff_seconds = 128;
@@ -63,7 +63,7 @@ fn main() {
                         Input::Help => {
                             try!(api.send_message(
                                     m.chat.id(),
-                                    format!("No such help 😜\nuse /webcam for a snapshot of the 3d printer.\nuse /crowd or /status for an update on people now present\nuse /grammer to receive the spec"),
+                                    format!("No such help 😜\nuse /webcam for a snapshot of the 3d printer.\nuse /crowd or /status for an update on people now present\nuse /grammar to receive the spec"),
                                     None, None, None
                             ));
                         },
@@ -94,17 +94,17 @@ fn main() {
                                     None, None, None
                             ));
                         },
-                        Input::Grammer => {
+                        Input::Grammar => {
                             try!(api.send_message(
                                     m.chat.id(),
-                                    grammer::get_grammer_string(),
+                                    grammar::get_grammar_string(),
                                     None, None, None
                             ));
                         },
                         Input::InvalidSyntax( msg ) => {
                             try!(api.send_message(
                                     m.chat.id(),
-                                    format!("InvalidSyntax: {}\ntry /grammer", msg),
+                                    format!("InvalidSyntax: {}\ntry /grammar", msg),
                                     None, None, None
                             ));
                         },

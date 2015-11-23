@@ -4,26 +4,26 @@ use std::io::BufReader;
 use std::fs::File;
 
 /// Returns everything from "src/user_input_compiler.rs" util it passes an empty Line.
-pub fn get_grammer_string() -> String {
+pub fn get_grammar_string() -> String {
   let f = match File::open("src/user_input_compiler.rs") {
-    Ok(f) => { println!("grammer::File::open"); f },
-    Err(e) => return format!("grammer::open error: {:?}", e),
+    Ok(f) => { println!("grammar::File::open"); f },
+    Err(e) => return format!("grammar::open error: {:?}", e),
   };
   let mut reader = BufReader::new(f);
-  let mut grammer = String::new();
+  let mut grammar = String::new();
   let mut i = 100;
   
   loop {
     let mut buffer = String::new();
     // read a line into buffer
     match reader.read_line(&mut buffer) {
-      Ok(v) => { println!("grammer::read_line: {:?}", v); },
-      Err(e) => return format!("grammer::read_line error: {:?}", e),
+      Ok(v) => { println!("grammar::read_line: {:?}", v); },
+      Err(e) => return format!("grammar::read_line error: {:?}", e),
     }
     println!("buffer: {:?}", buffer);
-    grammer = grammer + &*buffer;
+    grammar = grammar + &*buffer;
     if buffer == "\n" {
-      return grammer;
+      return grammar;
     }
     
     if i > 0 {
@@ -33,7 +33,7 @@ pub fn get_grammer_string() -> String {
     }
   }
   
-  grammer
+  grammar
 }
 
 
@@ -42,8 +42,8 @@ mod test {
   use super::*;
   
   #[test]
-  fn print_grammer_string() {
-    let g :String = get_grammer_string();
+  fn print_grammar_string() {
+    let g :String = get_grammar_string();
     println!("alles: {:?}", g);
     // TODO real Test
     assert!(g.is_empty() == false);
