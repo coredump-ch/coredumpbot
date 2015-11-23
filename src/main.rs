@@ -143,7 +143,7 @@ fn fetch_people_now_present() -> std::result::Result<i64, String> {
       
       let mut body = String::new();
       match res.read_to_string(&mut body) {
-        Err(e) => { Err(format!("unable to connect to server, try again later:\n{}\n{}", e, body)) },
+        Err(e) => { Err(format!("invalid response from server, try again later:\nError: {}\nBody: {}", e, body)) },
         Ok(_/*len*/) => {
           
           match Json::from_str( &*body ) {
