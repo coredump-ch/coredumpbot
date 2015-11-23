@@ -1,10 +1,10 @@
 [root]
 name = "coredump_bot"
-version = "0.2.4"
+version = "0.2.5"
 dependencies = [
  "hyper 0.6.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
- "spaceapi 0.1.1 (git+https://github.com/coredump-ch/spaceapi-rs.git)",
+ "spaceapi 0.2.0 (git+https://github.com/coredump-ch/spaceapi-rs.git)",
  "telegram-bot 0.3.0 (git+https://github.com/dns2utf8/telegram-bot.git?branch=fix_types)",
 ]
 
@@ -266,8 +266,8 @@ dependencies = [
 
 [[package]]
 name = "spaceapi"
-version = "0.1.1"
-source = "git+https://github.com/coredump-ch/spaceapi-rs.git#fe121baf755416602ae964fd23eca3179fe5bc82"
+version = "0.2.0"
+source = "git+https://github.com/coredump-ch/spaceapi-rs.git#6ea0b83bf451a8b83667806b1131e5f93a5b9ea6"
 dependencies = [
  "log 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
