@@ -11,42 +11,46 @@ struct SpaceApiClient {
 }
 
 pub fn fetch_people_now_present() -> ::std::result::Result<u64, String> {
+  let body = try!(fetch_status());
+  
+  match json::decode( &*body ) {
+    Err(e) => Err(format!("unable to parse server response: {:?}", e)),
+    Ok(status) => {
+      let status :Status = status;
+      match status.sensors {
+        Absent => Err(format!("response contains no sensors")),
+        Value(sensors) => {
+          match sensors.people_now_present {
+            Absent => Err(format!("response contains no sensors.people_now_present")),
+            Value(v) => {
+              
+              if v.is_empty() {
+                Err(format!("response.sensors.people_now_present is empty"))
+              } else {
+                  Ok( v[0].value )
+              }
+              
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+fn fetch_status() -> Result<String,String> {
   let client = Client::new();
 
-  match client.get("https://status.coredump.ch/").send() {
-    Err(e) => Err(format!("client.get() error:\n{}", e)),
+  match client.get("https://status.crdmp.ch/").send() {
+    Err(e) => Err(format!("client.get() error:\nError: {}", e)),
     Ok(mut res) => {
       
       let mut body = String::new();
       match res.read_to_string(&mut body) {
-        Err(e) => { Err(format!("unable to connect to server, try again later:\n{}\n{}", e, body)) },
+        Err(e) => { Err(format!("unable to connect to server, try again later:\nError: {}\nBody: {}", e, body)) },
         Ok(_/*len*/) => {
           
-          
-          match json::decode( &*body ) {
-            Err(e) => Err(format!("unable to parse server response: {:?}", e)),
-            Ok(status) => {
-              let status :Status = status;
-              match status.sensors {
-                Absent => Err(format!("response contains no sensors")),
-                Value(sensors) => {
-                  match sensors.people_now_present {
-                    Absent => Err(format!("response contains no sensors.people_now_present")),
-                    Value(v) => {
-                      
-                      if v.is_empty() {
-                        Err(format!("response.sensors.people_now_present is empty"))
-                      } else {
-                          Ok( v[0].value )
-                      }
-                      
-                    }
-                  }
-                }
-              }
-            }
-          }
-          
+          Ok(body)
         }
       }
     }
