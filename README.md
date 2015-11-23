@@ -25,6 +25,5 @@ Start the Bot like this:
     webcam - Get Picture of Webcam
     subscribe - Subscribe to a Sensor with an Duration
     help - Get Help
-    grammer - Get the Grammer for this Bot
     cancel - Cancel Subscription
     version - Get Version of Bot
