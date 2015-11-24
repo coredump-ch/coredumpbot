@@ -2,7 +2,7 @@
 use rustc_serialize::json;
 use hyper::Client;
 use std::io::Read;
-use spaceapi::Optional::{self, Value,Absent};
+use spaceapi::Optional::{self, Value, Absent};
 use spaceapi::{Status};
 use spaceapi::sensors::{PeopleNowPresentSensor};
 
@@ -11,12 +11,15 @@ struct SpaceApiClient {
 }
 
 pub fn fetch_people_now_present() -> ::std::result::Result<u64, String> {
-  let body = try!(fetch_status());
+  let status = try!(fetch_status());
   
-  match json::decode( &*body ) {
-    Err(e) => Err(format!("unable to parse server response: {:?}", e)),
-    Ok(status) => extract_people_now_present(status),
-  }
+  extract_people_now_present(status)
+}
+
+pub fn fetch_webcams() -> ::std::result::Result<Vec<String>, String> {
+  let status = try!(fetch_status());
+  
+  extract_webcams(status)
 }
 
 fn extract_people_now_present(status :Status) -> Result<u64, String> {
@@ -39,12 +42,14 @@ fn extract_people_now_present(status :Status) -> Result<u64, String> {
   }
 }
 
-fn extract_cams(Status :Status) -> Optional<Vec<String>> {
-  Absent
+fn extract_webcams(Status :Status) -> Result<Vec<String>, String> {
+  let mut v = Vec::new();
+  
+  Ok(v)
 }
 
 /// Fetch the Status from https://status.crdmp.ch/
-fn fetch_status() -> Result<String,String> {
+fn fetch_status() -> Result<Status,String> {
   let client = Client::new();
 
   match client.get("https://status.crdmp.ch/").send() {
@@ -56,7 +61,10 @@ fn fetch_status() -> Result<String,String> {
         Err(e) => { Err(format!("unable to connect to server, try again later:\nError: {}\nBody: {}", e, body)) },
         Ok(_/*len*/) => {
           
-          Ok(body)
+          match json::decode( &*body ) {
+            Err(e) => Err(format!("unable to parse server response: {:?}", e)),
+            Ok(status) => Ok(status),
+          }
         }
       }
     }
@@ -68,7 +76,7 @@ fn fetch_status() -> Result<String,String> {
 
 #[cfg(test)]
 mod test {
-  use super::{extract_people_now_present, extract_cams};
+  use super::{extract_people_now_present, extract_webcams};
   use spaceapi::{Status, Location, Contact};
   use spaceapi::optional::Optional;
   use spaceapi::sensors::{TemperatureSensor, PeopleNowPresentSensor};
@@ -109,5 +117,20 @@ mod test {
     let e = extract_people_now_present( minimal_response() ).unwrap_err();
     
     assert_eq!("response contains no sensors.people_now_present", e);
+  }
+  
+  
+  #[test]
+  fn extract_webcams_0() {
+    let v = extract_webcams( minimal_response() ).unwrap();
+    
+    assert_eq!(0, v.len());
+  }
+  #[test]
+  fn extract_webcams_1() {
+    let v = extract_webcams( cam_response() ).unwrap();
+    
+    assert_eq!(1, v.len());
+    assert_eq!("https://webcam.coredump.ch/cams/ultimaker.jpg", v[0]);
   }
 }
