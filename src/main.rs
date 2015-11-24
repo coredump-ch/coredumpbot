@@ -7,8 +7,7 @@ extern crate hyper;
 extern crate rustc_serialize;
 extern crate spaceapi;
 extern crate env_logger;
-#[macro_use]
-extern crate log;
+#[macro_use] extern crate log;
 
 use telegram_bot::{Api, ListeningMethod, MessageType, ListeningAction};
 use rustc_serialize::json::Json;
