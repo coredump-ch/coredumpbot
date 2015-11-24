@@ -6,20 +6,28 @@ use spaceapi::Optional::{self, Value, Absent};
 use spaceapi::{Status};
 use spaceapi::sensors::{PeopleNowPresentSensor};
 
-struct SpaceApiClient {
+pub struct SpaceApiClient {
   last_fetch: i64,
 }
 
-pub fn fetch_people_now_present() -> ::std::result::Result<u64, String> {
-  let status = try!(fetch_status());
+impl SpaceApiClient {
+  pub fn new() -> SpaceApiClient {
+    SpaceApiClient{
+      last_fetch: 0,
+    }
+  }
   
-  extract_people_now_present(status)
-}
+  pub fn fetch_people_now_present(&self) -> ::std::result::Result<u64, String> {
+    let status = try!(fetch_status());
+    
+    extract_people_now_present(status)
+  }
 
-pub fn fetch_webcams() -> ::std::result::Result<Vec<String>, String> {
-  let status = try!(fetch_status());
-  
-  extract_webcams(status)
+  pub fn fetch_webcams(&self) -> ::std::result::Result<Vec<String>, String> {
+    let status = try!(fetch_status());
+    
+    extract_webcams(status)
+  }
 }
 
 fn extract_people_now_present(status :Status) -> Result<u64, String> {

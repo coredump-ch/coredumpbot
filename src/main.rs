@@ -14,7 +14,6 @@ mod user_input_compiler;
 use user_input_compiler::Input;
 
 mod spaceapi_client;
-use spaceapi_client::fetch_people_now_present;
 
 mod grammar;
 
@@ -22,6 +21,7 @@ fn main() {
     let max_backoff_seconds = 128;
     let min_backoff_seconds = 1;
     let mut backoff_seconds = min_backoff_seconds;
+    let mut sac = spaceapi_client::SpaceApiClient::new();
     
     loop {
         // Create bot, test simple API call and print bot information
@@ -68,7 +68,7 @@ fn main() {
                             ));
                         },
                         Input::Status => {
-                            let s = match fetch_people_now_present() {
+                            let s = match sac.fetch_people_now_present() {
                                 Ok(people_now_present) if people_now_present > 1 =>  format!("Coredump is open\n{} people are present!", people_now_present),
                                 Ok(people_now_present) if people_now_present == 1 => format!("Coredump is open\nOne person is present!"),
                                 Ok(_) => format!("Coredump is closed\nNobody here right now."),
