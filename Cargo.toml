@@ -6,6 +6,8 @@ authors = [
 ]
 
 [dependencies]
+log = "^0.3"
+env_logger = "^0.3"
 telegram-bot = { git = "https://github.com/dns2utf8/telegram-bot.git", branch = "fix_types" }
 hyper = "0.6"
 rustc-serialize = "0.3"

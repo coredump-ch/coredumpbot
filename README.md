@@ -19,6 +19,10 @@ Start the Bot like this:
     git pull
     TELEGRAM_BOT_TOKEN=XXXXXXXXXXXXXXXXXXXXXXX cargo run --jobs 8 --release
 
+# Enable logging
+
+    RUST_LOG=info TELEGRAM_BOT_TOKEN=XXXXXXXXXXXXXXXXXXXXXXX cargo run
+
 # Set commands on Telegram
 
     status - Get People now present

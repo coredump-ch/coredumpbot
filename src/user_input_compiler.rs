@@ -173,21 +173,21 @@ fn match_sensor_selector(s :&mut Chars) -> Result<SensorSelector,Input> {
     return Err( InvalidSyntax( format!("Invalid SensorSelector: {}", collect_iterator(s)) ) );
   }
   
-  //println!("sensor: {}", sensor);
+  debug!("sensor: {}", sensor);
   s.skip(sensor.len() -1 +w).next();
   
   // OptionalInteger
   let mut it = s.clone();
   let mut nth = None;
   if let Ok(n) = match_integer(&mut it) {
-    //println!("potential OptionalInteger: {}", n);
+    debug!("potential OptionalInteger: {}", n);
     match it.next() {
       Some(ws) => {
-        //println!("ws: '{}'", ws);
+        debug!("ws: '{}'", ws);
         if ws == ' ' || ws == '\t' || ws == '\r' || ws == '\n' {
           nth = match match_integer(s) {
             Ok(n) if n >= 0 => {
-              //println!("next Integer: {}", n);
+              debug!("next Integer: {}", n);
               Some(n as u64)
             },
             Ok(n) => return Err( InvalidSyntax( format!("Index {} must be positive", n) ) ),
@@ -265,7 +265,7 @@ fn collect_integer(s :&mut Chars) -> Result<String, Input> {
   let w = consume_whitespaces(&mut it);
   
   for c in it {
-    println!("collect_integer: '{}'", c);
+    info!("collect_integer: '{}'", c);
     match c {
       '0' ... '9' => i.push( c ),
       _ => break,
@@ -408,7 +408,7 @@ mod test {
         assert_eq!(10 * 60, duration.as_secs());
       },
       InvalidSyntax(msg) => {
-        println!("{}", msg);
+        info!("{}", msg);
         assert!(false);
       },
       _ => assert!(false)
@@ -424,7 +424,7 @@ mod test {
         assert_eq!(10 * 60, duration.as_secs());
       },
       InvalidSyntax(msg) => {
-        println!("{}", msg);
+        info!("{}", msg);
         assert!(false);
       },
       _ => assert!(false)
@@ -440,7 +440,7 @@ mod test {
         assert_eq!(2 * 60 * 60, duration.as_secs());
       },
       InvalidSyntax(msg) => {
-        println!("{}", msg);
+        info!("{}", msg);
         assert!(false);
       },
       _ => assert!(false)
@@ -456,7 +456,7 @@ mod test {
         assert_eq!(7 * 60 * 60 * 24, duration.as_secs());
       },
       InvalidSyntax(msg) => {
-        println!("{}", msg);
+        info!("{}", msg);
         assert!(false);
       },
       _ => assert!(false)
@@ -483,7 +483,7 @@ mod test {
     match match_real(&mut s) {
       Ok(v) => assert_eq!(6.6, v),
       Err(e) => {
-        println!("{:?}", e);
+        info!("{:?}", e);
         assert!(false);
       },
     }
@@ -495,7 +495,7 @@ mod test {
     match match_real(&mut s) {
       Ok(v) => assert_eq!(123.456, v),
       Err(e) => {
-        println!("{:?}", e);
+        info!("{:?}", e);
         assert!(false);
       },
     }
@@ -507,7 +507,7 @@ mod test {
     match match_real(&mut s) {
       Ok(v) => assert_eq!(666.666, v),
       Err(e) => {
-        println!("{:?}", e);
+        info!("{:?}", e);
         assert!(false);
       },
     }
@@ -519,7 +519,7 @@ mod test {
     match match_real(&mut s) {
       Ok(v) => assert_eq!(10 as f64, v),
       Err(e) => {
-        println!("{:?}", e);
+        info!("{:?}", e);
         assert!(false);
       },
     }
@@ -531,14 +531,14 @@ mod test {
     match match_real(&mut s) {
       Ok(v) => assert_eq!(10 as f64, v),
       Err(e) => {
-        println!("{:?}", e);
+        info!("{:?}", e);
         assert!(false);
       },
     }
     match match_timesuffix(&mut s) {
       Ok(v) => assert_eq!(60, v),
       Err(e) => {
-        println!("{:?}", e);
+        info!("{:?}", e);
         assert!(false);
       },
     }
@@ -550,14 +550,14 @@ mod test {
     match match_real(&mut s) {
       Ok(v) => assert_eq!(10 as f64, v),
       Err(e) => {
-        println!("{:?}", e);
+        info!("{:?}", e);
         assert!(false);
       },
     }
     match match_timesuffix(&mut s) {
       Ok(v) => assert_eq!(60, v),
       Err(e) => {
-        println!("{:?}", e);
+        info!("{:?}", e);
         assert!(false);
       },
     }
@@ -569,14 +569,14 @@ mod test {
     match match_real(&mut s) {
       Ok(v) => assert_eq!(10.5 as f64, v),
       Err(e) => {
-        println!("{:?}", e);
+        info!("{:?}", e);
         assert!(false);
       },
     }
     match match_timesuffix(&mut s) {
       Ok(v) => assert_eq!(60, v),
       Err(e) => {
-        println!("{:?}", e);
+        info!("{:?}", e);
         assert!(false);
       },
     }
@@ -588,14 +588,14 @@ mod test {
     match match_real(&mut s) {
       Ok(v) => assert_eq!(10.5 as f64, v),
       Err(e) => {
-        println!("{:?}", e);
+        info!("{:?}", e);
         assert!(false);
       },
     }
     match match_timesuffix(&mut s) {
       Ok(v) => assert_eq!(60, v),
       Err(e) => {
-        println!("{:?}", e);
+        info!("{:?}", e);
         assert!(false);
       },
     }
@@ -607,14 +607,14 @@ mod test {
     match match_real(&mut s) {
       Ok(v) => assert_eq!(12.3, v),
       Err(e) => {
-        println!("{:?}", e);
+        info!("{:?}", e);
         assert!(false);
       },
     }
     match match_real(&mut s) {
       Ok(v) => assert_eq!(45.6, v),
       Err(e) => {
-        println!("{:?}", e);
+        info!("{:?}", e);
         assert!(false);
       },
     }
@@ -627,7 +627,7 @@ mod test {
     match match_real(&mut s) {
       Ok(v) => assert!(false),
       Err(e) => {
-        println!("====={:?}", e);
+        info!("====={:?}", e);
         assert!(true);
       },
     }
@@ -665,7 +665,7 @@ mod test {
     match match_duration(&mut s) {
       Ok(v) => assert_eq!(Duration::from_secs(10*60), v),
       Err(e) => {
-        println!("{:?}", e);
+        info!("{:?}", e);
         assert!(false);
       },
     }
@@ -710,9 +710,9 @@ mod test {
     match Input::from( format!("/webcam 42") ) {
       WebCam{ nth } => {
         if let Some(nth) = nth { 
-          assert!( if nth == 42 { true } else { println!("wrong Value: {}", nth); false } ) 
+          assert!( if nth == 42 { true } else { info!("wrong Value: {}", nth); false } ) 
         } else {
-          println!("expected OptionalInteger");
+          info!("expected OptionalInteger");
           assert!(false)
         }
       },
