@@ -42,10 +42,11 @@ fn extract_people_now_present(status :Status) -> Result<u64, String> {
   }
 }
 
-fn extract_webcams(Status :Status) -> Result<Vec<String>, String> {
-  let mut v = Vec::new();
-  
-  Ok(v)
+fn extract_webcams(status :Status) -> Result<Vec<String>, String> {
+  match status.cam {
+    Value(cams) => Ok(cams),
+    Absent => Err( format!("response contains no webcams") ),
+  }
 }
 
 /// Fetch the Status from https://status.crdmp.ch/
@@ -122,9 +123,9 @@ mod test {
   
   #[test]
   fn extract_webcams_0() {
-    let v = extract_webcams( minimal_response() ).unwrap();
+    let e = extract_webcams( minimal_response() ).unwrap_err();
     
-    assert_eq!(0, v.len());
+    assert_eq!("response contains no webcams", e);
   }
   #[test]
   fn extract_webcams_1() {
