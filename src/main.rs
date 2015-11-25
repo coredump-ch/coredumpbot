@@ -105,29 +105,35 @@ fn main() {
                             ));
                         },
                         Input::InvalidSyntax( msg ) => {
-                            try!(api.send_message(
-                                    m.chat.id(),
-                                    format!("InvalidSyntax: {}\ntry /grammar", msg),
-                                    None, None, None
-                            ));
+                            if m.chat.is_user() {
+                                try!(api.send_message(
+                                        m.chat.id(),
+                                        format!("InvalidSyntax: {}\ntry /grammar", msg),
+                                        None, None, None
+                                ));
+                            }
                         },
                         _ => {
+                            if m.chat.is_user() {
+                                try!(
+                                    api.send_message(
+                                        m.chat.id(),
+                                        format!("Unknown Command ... try /help"),
+                                        None, None, None)
+                                );
+                            }
+                        }, 
+                        }
+                    },
+                    _ => {
+                        if m.chat.is_user() {
                             try!(
                                 api.send_message(
                                     m.chat.id(),
                                     format!("Unknown Command ... try /help"),
                                     None, None, None)
                             );
-                        }, 
                         }
-                    },
-                    _ => {
-                        try!(
-                            api.send_message(
-                                m.chat.id(),
-                                format!("Unknown Command ... try /help"),
-                                None, None, None)
-                        );
                     }
                 }
             }
