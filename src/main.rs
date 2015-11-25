@@ -44,6 +44,11 @@ fn main() {
             // If the received update contains a message...
             if let Some(m) = u.message {
                 let name = m.from.first_name;
+                
+                // Discard Messages from Groups the Bot is no longer part of
+                if m.chat.id() < 0 {
+                    return Ok(ListeningAction::Continue);
+                }
 
                 // Match message type
                 match m.msg {
