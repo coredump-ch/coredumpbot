@@ -10,3 +10,4 @@ telegram-bot = { git = "https://github.com/dns2utf8/telegram-bot.git", branch = 
 hyper = "0.6"
 rustc-serialize = "0.3"
 spaceapi = { git = "https://github.com/coredump-ch/spaceapi-rs.git", branch = "master" }
+time = "0.1"
