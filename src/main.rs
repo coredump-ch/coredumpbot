@@ -25,6 +25,7 @@ fn main() {
     let max_backoff_seconds = 128;
     let min_backoff_seconds = 1;
     let mut backoff_seconds = min_backoff_seconds;
+    let mut last_processed_message_id = 0;
     
     loop {
         // Create bot, test simple API call and print bot information
@@ -43,12 +44,15 @@ fn main() {
             
             // If the received update contains a message...
             if let Some(m) = u.message {
-                let name = m.from.first_name;
-                
                 // Discard Messages from Groups the Bot is no longer part of
-                if m.chat.id() < 0 {
+                if m.chat.id() == last_processed_message_id {
+                    warn!("Dropped Message: {:?}", m);
                     return Ok(ListeningAction::Continue);
+                } else {
+                    last_processed_message_id = m.chat.id();
                 }
+                
+                let name = m.from.first_name;
 
                 // Match message type
                 match m.msg {
