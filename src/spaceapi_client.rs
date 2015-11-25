@@ -6,15 +6,27 @@ use spaceapi::Optional::{self, Value, Absent};
 use spaceapi::{Status};
 use spaceapi::sensors::{PeopleNowPresentSensor};
 
+use std::time::Duration;
+use time::SteadyTime;
+use std::env;
+use std::fs::File;
+use std::io;
+
 pub struct SpaceApiClient {
   last_fetch: i64,
+  webcams: Vec<String>,
 }
 
 impl SpaceApiClient {
   pub fn new() -> SpaceApiClient {
-    SpaceApiClient{
+    let mut s = SpaceApiClient{
       last_fetch: 0,
-    }
+      webcams: Vec::new(),
+    };
+    
+    s.fetch_webcams();
+    
+    s
   }
   
   pub fn fetch_people_now_present(&self) -> ::std::result::Result<u64, String> {
@@ -23,10 +35,27 @@ impl SpaceApiClient {
     extract_people_now_present(status)
   }
 
-  pub fn fetch_webcams(&self) -> ::std::result::Result<Vec<String>, String> {
-    let status = try!(fetch_status());
+  pub fn get_webcams(&self) -> Vec<String> {
+    self.webcams.clone()
+  }
+
+  fn fetch_webcams(&mut self) {
+    if let Ok(status) = fetch_status() {
+      
+      if let Value(cams) = status.cam {
+        self.webcams = cams;
+      }
+    }
+  }
+  
+  pub fn get_tmp_path_for_webcam(&self, url :&String) -> Result<String,io::Error> {
+    let mut path = env::temp_dir();
+    path.push("get_tmp_path_for_webcam");
+    path.set_file_name("todo.jpg");
     
-    extract_webcams(status)
+    let f = try!(File::create(&path));
+    
+    Ok::<String,io::Error>(format!("{}", path.to_str().unwrap()))
   }
 }
 
@@ -47,13 +76,6 @@ fn extract_people_now_present(status :Status) -> Result<u64, String> {
         }
       }
     }
-  }
-}
-
-fn extract_webcams(status :Status) -> Result<Vec<String>, String> {
-  match status.cam {
-    Value(cams) => Ok(cams),
-    Absent => Err( format!("response contains no webcams") ),
   }
 }
 
@@ -80,12 +102,24 @@ fn fetch_status() -> Result<Status,String> {
   }
 }
 
+/// Fetch a Binary from url and save it to a temporary Location.
+/// returns the temp Path
+fn fetch_binary(url :String) -> Result<String,String> {
+  let client = Client::new();
+
+  match client.get(&url).send() {
+    Err(e) => Err(format!("client.get({}) error:\nError: {}", url, e)),
+    Ok(mut res) => {
+      Ok( "bla".into() )
+    }
+  }
+}
 
 
 
 #[cfg(test)]
 mod test {
-  use super::{extract_people_now_present, extract_webcams};
+  use super::{extract_people_now_present};
   use spaceapi::{Status, Location, Contact};
   use spaceapi::optional::Optional;
   use spaceapi::sensors::{TemperatureSensor, PeopleNowPresentSensor};
@@ -126,20 +160,5 @@ mod test {
     let e = extract_people_now_present( minimal_response() ).unwrap_err();
     
     assert_eq!("response contains no sensors.people_now_present", e);
-  }
-  
-  
-  #[test]
-  fn extract_webcams_0() {
-    let e = extract_webcams( minimal_response() ).unwrap_err();
-    
-    assert_eq!("response contains no webcams", e);
-  }
-  #[test]
-  fn extract_webcams_1() {
-    let v = extract_webcams( cam_response() ).unwrap();
-    
-    assert_eq!(1, v.len());
-    assert_eq!("https://webcam.coredump.ch/cams/ultimaker.jpg", v[0]);
   }
 }

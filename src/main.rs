@@ -6,8 +6,9 @@ extern crate telegram_bot;
 extern crate hyper;
 extern crate rustc_serialize;
 extern crate spaceapi;
+extern crate time;
 
-use telegram_bot::{Api, ListeningMethod, MessageType, ListeningAction};
+use telegram_bot::{Api, ListeningMethod, Message, MessageType, ListeningAction};
 use rustc_serialize::json::Json;
 
 mod user_input_compiler;
@@ -51,14 +52,36 @@ fn main() {
                         let ts:String = format!("{}", t.trim() );
                         
                         match Input::from(ts) {
-                        Input::WebCam{ nth } => { 
-                            try!(api.send_photo(
-                                    m.chat.id(),
-                                    path_to_picture.clone(), // Path
-                                    Some(caption_to_picture.clone()), // caption
-                                    None, // reply_to_message_id
-                                    None  // reply_markup
-                            ));
+                        Input::WebCam{ nth } => {
+                            let mut w = sac.get_webcams();
+                            match nth {
+                                /*Some(nth) if nth < w.len() as u64 => {
+                                    let e = w.get(nth as usize).unwrap();
+                                    w.clear();
+                                    w.push(format!("{}",*e));
+                                },
+                                Some(nth) => { try!(send(&api, m, format!("invalid OptionalInteger: {}", nth))); return Ok(ListeningAction::Continue); },*/
+                                Some (nth) => match w.get(nth as usize) {
+                                    Some(e) => {},
+                                    None => {},
+                                },
+                                None => {},
+                            };
+                            
+                            for pic_path in w {
+                                let caption = basename(&pic_path);
+                                if let Ok(pic_tmp_path) = sac.get_tmp_path_for_webcam(&pic_path) {
+                                    try!(api.send_photo(
+                                            m.chat.id(),
+                                            pic_tmp_path, // Path
+                                            Some(caption), // caption
+                                            None, // reply_to_message_id
+                                            None  // reply_markup
+                                    ));
+                                } else {
+                                    // TODO send Error
+                                }
+                            }
                         },
                         Input::Help => {
                             try!(api.send_message(
@@ -145,4 +168,16 @@ fn main() {
     }
 }
 
+fn send(api:&Api, m: Message, message :String) -> Result<Message,telegram_bot::Error> {
+    api.send_message(
+        m.chat.id(), // chat_id                  : Integer
+        message,     // text                     : String
+        None,        // disable_web_page_preview : Option<bool>
+        None,        // reply_to_message_id      : Option<Integer>
+        None)        // reply_markup             : Option<ReplyMakrup>
+}
+
+fn basename(path :&String) -> String {
+    path.clone() // TODO
+}
 
