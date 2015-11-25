@@ -45,11 +45,11 @@ fn main() {
             // If the received update contains a message...
             if let Some(m) = u.message {
                 // Discard Messages from Groups the Bot is no longer part of
-                if m.chat.id() == last_processed_message_id {
+                if m.message_id == last_processed_message_id {
                     warn!("Dropped Message: {:?}", m);
                     return Ok(ListeningAction::Continue);
                 } else {
-                    last_processed_message_id = m.chat.id();
+                    last_processed_message_id = m.message_id;
                 }
                 
                 let name = m.from.first_name;
