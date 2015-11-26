@@ -1,7 +1,7 @@
 //extern crate spaceapi;
+use std::io::prelude::*;
 use rustc_serialize::json;
 use hyper::Client;
-use std::io::Read;
 use spaceapi::Optional::{self, Value, Absent};
 use spaceapi::{Status};
 use spaceapi::sensors::{PeopleNowPresentSensor};
@@ -9,7 +9,7 @@ use spaceapi::sensors::{PeopleNowPresentSensor};
 use std::time::Duration;
 use time::SteadyTime;
 use std::env;
-use std::fs::File;
+use std::fs::{self, File};
 use std::io;
 
 pub struct SpaceApiClient {
@@ -49,13 +49,36 @@ impl SpaceApiClient {
   }
   
   pub fn get_tmp_path_for_webcam(&self, url :&String) -> Result<String,io::Error> {
-    let mut path = env::temp_dir();
-    path.push("get_tmp_path_for_webcam");
-    path.set_file_name("todo.jpg");
+    let dir = env::temp_dir().join("coredump_bot").join("get_tmp_path_for_webcam");
+    let path = env::temp_dir().join("coredump_bot").join("get_tmp_path_for_webcam").join( self.basename(url) );
+    let path = path.as_path();
     
-    let f = try!(File::create(&path));
+    
+    fs::create_dir_all(dir);
+    
+    let mut f = try!(File::create(&path));
+    
+    
+    let bin = try!(fetch_binary(url));
+    
+    
+    f.write_all(&bin);
+    f.sync_all();
     
     Ok::<String,io::Error>(format!("{}", path.to_str().unwrap()))
+  }
+  
+  pub fn basename(&self, path :&String) -> String {
+    let mut r = String::new();
+    
+    for c in path.chars() {
+      match c {
+        '/' => r.clear(),
+        _ => r.push( c ),
+      }
+    }
+    
+    r
   }
 }
 
@@ -104,15 +127,31 @@ fn fetch_status() -> Result<Status,String> {
 
 /// Fetch a Binary from url and save it to a temporary Location.
 /// returns the temp Path
-fn fetch_binary(url :String) -> Result<String,String> {
+fn fetch_binary(url :&String) -> Result<Vec<u8>,io::Error> {
   let client = Client::new();
+  
+  let mut res = match client.get(url).send() {
+    Ok(v) => v,
+    Err(e) => return Err(io::Error::new(io::ErrorKind::BrokenPipe, format!("{:?}", e))),
+  };
+  
+  let mut v = vec![];
+  let size = try!(res.read_to_end(&mut v));
+  
+  Ok(v)
 
-  match client.get(&url).send() {
+  /*match client.get(url).send() {
     Err(e) => Err(format!("client.get({}) error:\nError: {}", url, e)),
     Ok(mut res) => {
-      Ok( "bla".into() )
+      
+      match res.read_to_end(&mut v) {
+        Err(e) => Err(format!("")),
+        Ok(size) => {
+          Ok( v )
+        }
+      }
     }
-  }
+  }*/
 }
 
 

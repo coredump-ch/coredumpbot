@@ -69,17 +69,21 @@ fn main() {
                             };
                             
                             for pic_path in w {
-                                let caption = basename(&pic_path);
-                                if let Ok(pic_tmp_path) = sac.get_tmp_path_for_webcam(&pic_path) {
-                                    try!(api.send_photo(
-                                            m.chat.id(),
-                                            pic_tmp_path, // Path
-                                            Some(caption), // caption
-                                            None, // reply_to_message_id
-                                            None  // reply_markup
-                                    ));
-                                } else {
-                                    // TODO send Error
+                                let caption = sac.basename(&pic_path);
+                                match sac.get_tmp_path_for_webcam(&pic_path) {
+                                    Ok(pic_tmp_path) => {
+                                        try!(api.send_photo(
+                                                m.chat.id(),
+                                                pic_tmp_path, // Path
+                                                Some(caption), // caption
+                                                None, // reply_to_message_id
+                                                None  // reply_markup
+                                        ));
+                                    },
+                                    Err(e) => {
+                                        println!("WebCam({:?}) Error: {:?}",nth, e);
+                                        // TODO send Error
+                                    },
                                 }
                             }
                         },
@@ -175,9 +179,5 @@ fn send(api:&Api, m: Message, message :String) -> Result<Message,telegram_bot::E
         None,        // disable_web_page_preview : Option<bool>
         None,        // reply_to_message_id      : Option<Integer>
         None)        // reply_markup             : Option<ReplyMakrup>
-}
-
-fn basename(path :&String) -> String {
-    path.clone() // TODO
 }
 
