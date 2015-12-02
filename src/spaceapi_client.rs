@@ -19,10 +19,14 @@ pub struct SpaceApiClient {
 
 impl SpaceApiClient {
   pub fn new() -> SpaceApiClient {
-    let mut s = SpaceApiClient{
+    SpaceApiClient{
       last_fetch: 0,
       webcams: Vec::new(),
-    };
+    }
+  }
+  
+  pub fn init() -> SpaceApiClient {
+    let mut s = SpaceApiClient::new();
     
     s.fetch_webcams();
     

@@ -25,7 +25,7 @@ fn main() {
     let max_backoff_seconds = 128;
     let min_backoff_seconds = 1;
     let mut backoff_seconds = min_backoff_seconds;
-    let mut sac = spaceapi_client::SpaceApiClient::new();
+    let mut sac = spaceapi_client::SpaceApiClient::init();
     let mut last_processed_message_id = 0;
     
     loop {
