@@ -7,6 +7,8 @@ extern crate hyper;
 extern crate rustc_serialize;
 extern crate spaceapi;
 extern crate time;
+extern crate env_logger;
+#[macro_use] extern crate log;
 
 use telegram_bot::{Api, ListeningMethod, Message, MessageType, ListeningAction};
 use rustc_serialize::json::Json;
@@ -19,15 +21,17 @@ mod spaceapi_client;
 mod grammar;
 
 fn main() {
+    env_logger::init().unwrap();
     let max_backoff_seconds = 128;
     let min_backoff_seconds = 1;
     let mut backoff_seconds = min_backoff_seconds;
     let mut sac = spaceapi_client::SpaceApiClient::new();
+    let mut last_processed_message_id = 0;
     
     loop {
         // Create bot, test simple API call and print bot information
         let api = Api::from_env("TELEGRAM_BOT_TOKEN").unwrap();
-        println!("getMe: {:?}", api.get_me());
+        info!("getMe: {:?}", api.get_me());
         let mut listener = api.listener(ListeningMethod::LongPoll(None));
         
         let path_to_picture :String = "rust-logo-blk.png".to_string();
@@ -41,13 +45,21 @@ fn main() {
             
             // If the received update contains a message...
             if let Some(m) = u.message {
+                // Discard Messages from Groups the Bot is no longer part of
+                if m.message_id == last_processed_message_id {
+                    warn!("Dropped Message: {:?}", m);
+                    return Ok(ListeningAction::Continue);
+                } else {
+                    last_processed_message_id = m.message_id;
+                }
+                
                 let name = m.from.first_name;
 
                 // Match message type
                 match m.msg {
                     MessageType::Text(t) => {
                         // Print received text message to stdout
-                        println!("<{}> {}", name, t);
+                        info!("<{}> {}", name, t);
                         let t = t.replace("@CoreDumpBot", "");
                         let ts:String = format!("{}", t.trim() );
                         
@@ -129,29 +141,35 @@ fn main() {
                             ));
                         },
                         Input::InvalidSyntax( msg ) => {
-                            try!(api.send_message(
-                                    m.chat.id(),
-                                    format!("InvalidSyntax: {}\ntry /grammar", msg),
-                                    None, None, None
-                            ));
+                            if m.chat.is_user() {
+                                try!(api.send_message(
+                                        m.chat.id(),
+                                        format!("InvalidSyntax: {}\ntry /grammar", msg),
+                                        None, None, None
+                                ));
+                            }
                         },
                         _ => {
+                            if m.chat.is_user() {
+                                try!(
+                                    api.send_message(
+                                        m.chat.id(),
+                                        format!("Unknown Command ... try /help"),
+                                        None, None, None)
+                                );
+                            }
+                        }, 
+                        }
+                    },
+                    _ => {
+                        if m.chat.is_user() {
                             try!(
                                 api.send_message(
                                     m.chat.id(),
                                     format!("Unknown Command ... try /help"),
                                     None, None, None)
                             );
-                        }, 
                         }
-                    },
-                    _ => {
-                        try!(
-                            api.send_message(
-                                m.chat.id(),
-                                format!("Unknown Command ... try /help"),
-                                None, None, None)
-                        );
                     }
                 }
             }
@@ -161,7 +179,7 @@ fn main() {
         });
 
         if let Err(e) = res {
-            println!("An error occured: {}\nSleeping for {} Seconds", e, backoff_seconds);
+            warn!("An error occured: {}\nSleeping for {} Seconds", e, backoff_seconds);
             // Rest for 10 Seconds
             std::thread::sleep_ms(backoff_seconds * 1000);
             

@@ -1,4 +1,3 @@
-use std::io;
 use std::io::prelude::*;
 use std::io::BufReader;
 use std::fs::File;
@@ -44,7 +43,7 @@ mod test {
   #[test]
   fn print_grammar_string() {
     let g :String = get_grammar_string();
-    println!("alles: {:?}", g);
+    info!("alles: {:?}", g);
     // TODO real Test
     assert!(g.is_empty() == false);
     //assert!("\n\n".is_suffix_of(g));
