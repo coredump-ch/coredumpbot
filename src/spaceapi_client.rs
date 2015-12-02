@@ -73,16 +73,10 @@ impl SpaceApiClient {
   }
   
   pub fn basename(&self, path :&String) -> String {
-    let mut r = String::new();
-    
-    for c in path.chars() {
-      match c {
-        '/' => r.clear(),
-        _ => r.push( c ),
-      }
+    match path.rfind('/') {
+      Some(p) => String::from( &path[p+1..] ),
+      None => path.clone(),
     }
-    
-    r
   }
 }
 
@@ -203,5 +197,35 @@ mod test {
     let e = extract_people_now_present( minimal_response() ).unwrap_err();
     
     assert_eq!("response contains no sensors.people_now_present", e);
+  }
+}
+
+
+#[cfg(test)]
+mod test_basename {
+  use super::SpaceApiClient;
+
+  #[test]
+  fn path() {
+    let sac = SpaceApiClient::new();
+    assert_eq!(sac.basename(&"/usr/bin/bash".into()), format!("bash"));
+  }
+
+  #[test]
+  fn url() {
+    let sac = SpaceApiClient::new();
+    assert_eq!(sac.basename(&"http://coredump.ch/f/index.html".into()), "index.html");
+  }
+
+  #[test]
+  fn plain() {
+    let sac = SpaceApiClient::new();
+    assert_eq!(sac.basename(&"foobar".into()), "foobar");
+  }
+
+  #[test]
+  fn none() {
+    let sac = SpaceApiClient::new();
+    assert_eq!(sac.basename(&"/bin/".into()), "");
   }
 }
