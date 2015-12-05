@@ -1,5 +1,16 @@
 # Changelog
 
+This project follows the semantic versioning without the leading v in the tags.
+
+Every Message starts with one of the following words:
+
+ - `Add` for new functionality
+ - `Change` for change in behavior
+ - `Break` for breaking-change
+ - `Fix`
+ - `Switch` internal change
+ - `Remove` functionality
+
 ## [Unreleased]
 
  - Add fetch pictures from all webcams
