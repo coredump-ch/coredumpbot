@@ -87,7 +87,7 @@ fn main() {
                                         try!(api.send_photo(
                                                 m.chat.id(),
                                                 pic_tmp_path, // Path
-                                                Some(caption), // caption
+                                                Some(caption.into()), // caption
                                                 None, // reply_to_message_id
                                                 None  // reply_markup
                                         ));

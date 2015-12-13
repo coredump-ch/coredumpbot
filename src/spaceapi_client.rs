@@ -72,10 +72,10 @@ impl SpaceApiClient {
     Ok::<String,io::Error>(format!("{}", path.to_str().unwrap()))
   }
   
-  pub fn basename(&self, path :&String) -> String {
+  pub fn basename<'a>(&self, path :&'a String) -> &'a str {
     match path.rfind('/') {
-      Some(p) => String::from( &path[p+1..] ),
-      None => path.clone(),
+      Some(p) => &path[p+1..],
+      None => path,
     }
   }
 }
