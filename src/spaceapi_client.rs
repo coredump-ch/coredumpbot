@@ -7,7 +7,6 @@ use spaceapi::{Status};
 use spaceapi::sensors::{PeopleNowPresentSensor};
 
 use std::time::Duration;
-use time::SteadyTime;
 use std::env;
 use std::fs::{self, File};
 use std::io;

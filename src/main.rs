@@ -6,7 +6,6 @@ extern crate telegram_bot;
 extern crate hyper;
 extern crate rustc_serialize;
 extern crate spaceapi;
-extern crate time;
 extern crate env_logger;
 #[macro_use] extern crate log;
 
