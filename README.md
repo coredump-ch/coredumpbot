@@ -3,7 +3,7 @@
 
 Start the Bot like this:
 
-    TELEGRAM_BOT_TOKEN=XXXXXXXXXXXXXXXXXXXXXXX cargo run --jobs 8
+    TELEGRAM_BOT_TOKEN=XXXXXXXXXXXXXXXXXXXXXXX cargo run
  
 or use out bot: https://telegram.me/CoredumpBot
 
