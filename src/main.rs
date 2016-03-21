@@ -11,7 +11,6 @@ extern crate env_logger;
 #[macro_use] extern crate log;
 
 use telegram_bot::{Api, ListeningMethod, Message, MessageType, ListeningAction};
-use rustc_serialize::json::Json;
 
 mod user_input_compiler;
 use user_input_compiler::Input;
@@ -63,25 +62,29 @@ fn main() {
                         
                         match Input::from(ts) {
                         Input::WebCam{ nth } => {
-                            let cams = sac.get_webcams().iter();
-                            let w = match nth {
-                                Some (nth) => {
-                                    if nth >= cams.len() {
-                                        try!(send_message(&api, m.chat.id(),
-                                            format!("You requested the webcam #{}, but there are just {}", nth, cams.len())
-                                        ));
-                                        return Ok(ListeningAction::Continue);
-                                    } else {
-                                        let mut n = 0;
-                                        cams.filter(|_| {
-                                            n == nth
-                                        })
-                                    }
-                                },
-                                None => {
-                                    cams.filter(|_| { true })
-                                },
+                            let cams = sac.get_webcams();
+                            
+                            let no_filter = if let Some(nth) = nth {
+                                if nth >= cams.len() {
+                                    try!(send_message(&api, m.chat.id(),
+                                        format!("You requested the webcam #{}, but there are just {}", nth, cams.len())
+                                    ));
+                                    return Ok(ListeningAction::Continue);
+                                }
+                                
+                                false
+                            } else {
+                                true
                             };
+                            
+                            let mut n : usize = 0;
+                            let w =
+                                cams.iter().filter(|_| {
+                                    let b = no_filter || Some(n) == nth;
+                                    n += 1;
+                                    b
+                                })
+                            ;
                             
                             for pic_path in w {
                                 let caption = sac.basename(&pic_path);
