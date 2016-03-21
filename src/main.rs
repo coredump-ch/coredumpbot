@@ -63,19 +63,24 @@ fn main() {
                         
                         match Input::from(ts) {
                         Input::WebCam{ nth } => {
-                            let mut w = sac.get_webcams();
-                            match nth {
-                                /*Some(nth) if nth < w.len() as u64 => {
-                                    let e = w.get(nth as usize).unwrap();
-                                    w.clear();
-                                    w.push(format!("{}",*e));
+                            let cams = sac.get_webcams().iter();
+                            let w = match nth {
+                                Some (nth) => {
+                                    if nth >= cams.len() {
+                                        try!(send_message(&api, m.chat.id(),
+                                            format!("You requested the webcam #{}, but there are just {}", nth, cams.len())
+                                        ));
+                                        return Ok(ListeningAction::Continue);
+                                    } else {
+                                        let mut n = 0;
+                                        cams.filter(|_| {
+                                            n == nth
+                                        })
+                                    }
                                 },
-                                Some(nth) => { try!(send(&api, m, format!("invalid OptionalInteger: {}", nth))); return Ok(ListeningAction::Continue); },*/
-                                Some (nth) => match w.get(nth as usize) {
-                                    Some(e) => {},
-                                    None => {},
+                                None => {
+                                    cams.filter(|_| { true })
                                 },
-                                None => {},
                             };
                             
                             for pic_path in w {
