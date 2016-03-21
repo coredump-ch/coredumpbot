@@ -34,9 +34,7 @@ fn main() {
         info!("getMe: {:?}", api.get_me());
         let mut listener = api.listener(ListeningMethod::LongPoll(None));
         
-        let path_to_picture :String = "rust-logo-blk.png".to_string();
-        let caption_to_picture :String = "Rust Logo".to_string();
-
+        
         // Fetch new updates via long poll method
         let res = listener.listen(|u| {
             // Restore backoff_seconds, since it works agan
@@ -103,7 +101,7 @@ fn main() {
                             try!(api.send_message(
                                     m.chat.id(),
                                     format!("No such help 😜\nuse /webcam for a snapshot of the 3d printer.\nuse /crowd or /status for an update on people now present\nuse /grammar to receive the spec"),
-                                    None, None, None
+                                    None, None, None, None
                             ));
                         },
                         Input::Status => {
@@ -116,28 +114,28 @@ fn main() {
                             try!(api.send_message(
                                     m.chat.id(),
                                     s,
-                                    None, None, None
+                                    None, None, None, None
                             ));
                         },
                         Input::Start => {
                             try!(api.send_message(
                                     m.chat.id(),
                                     format!("Welcome to CoredumpBot\nuse /help for a some commands."),
-                                    None, None, None
+                                    None, None, None, None
                             ));
                         },
                         Input::Version => {
                             try!(api.send_message(
                                     m.chat.id(),
                                     format!("Version: {}", env!("CARGO_PKG_VERSION")),
-                                    None, None, None
+                                    None, None, None, None
                             ));
                         },
                         Input::Grammar => {
                             try!(api.send_message(
                                     m.chat.id(),
                                     grammar::get_grammar_string(),
-                                    None, None, None
+                                    None, None, None, None
                             ));
                         },
                         Input::InvalidSyntax( msg ) => {
@@ -145,7 +143,7 @@ fn main() {
                                 try!(api.send_message(
                                         m.chat.id(),
                                         format!("InvalidSyntax: {}\ntry /grammar", msg),
-                                        None, None, None
+                                        None, None, None, None
                                 ));
                             }
                         },
@@ -155,7 +153,7 @@ fn main() {
                                     api.send_message(
                                         m.chat.id(),
                                         format!("Unknown Command ... try /help"),
-                                        None, None, None)
+                                        None, None, None, None)
                                 );
                             }
                         }, 
@@ -167,7 +165,7 @@ fn main() {
                                 api.send_message(
                                     m.chat.id(),
                                     format!("Unknown Command ... try /help"),
-                                    None, None, None)
+                                    None, None, None, None)
                             );
                         }
                     }
@@ -194,6 +192,7 @@ fn send(api:&Api, m: Message, message :String) -> Result<Message,telegram_bot::E
     api.send_message(
         m.chat.id(), // chat_id                  : Integer
         message,     // text                     : String
+        None,        // parse_mode               : Option<ParseMode>
         None,        // disable_web_page_preview : Option<bool>
         None,        // reply_to_message_id      : Option<Integer>
         None)        // reply_markup             : Option<ReplyMakrup>
