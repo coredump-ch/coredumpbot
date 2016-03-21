@@ -114,7 +114,7 @@ fn match_command_word(s :&mut Chars) -> Input {
     return Start;
   } else {
   
-    return InvalidSyntax( format!("Invalid CommandWord") );
+    return InvalidSyntax( "Invalid CommandWord".into() );
   }
 }
 
@@ -217,9 +217,7 @@ fn match_duration(s :&mut Chars) -> Result<Duration,Input> {
 fn match_real(s: &mut Chars) -> Result<f64, Input> {
   let st :String = try!(collect_real(s));
   match st.parse::<f64>() {
-    Ok(val) => {
-      Ok(val)
-    },
+    Ok(val)  => Ok(val),
     Err(msg) => Err( InvalidSyntax(format!("Invalid Real: {:?}", msg)) )
   }
 }
@@ -246,10 +244,7 @@ fn collect_real(s: &mut Chars) -> Result<String, Input> {
 fn match_integer(s :&mut Chars) -> Result<i64, Input> {
   let st :String = try!(collect_integer(s));
   match st.parse::<i64>() {
-    Ok(val) => {
-      //s.skip(st.len() -1).next();
-      Ok(val)
-    },
+    Ok(val)  => Ok(val),
     Err(msg) => Err( InvalidSyntax(format!("Invalid Integer: {:?}", msg)) ),
   }
 }
@@ -299,17 +294,13 @@ fn match_timesuffix(s :&mut Chars) -> Result<i64, Input> {
 
 /// Search without modifing the Iterator
 fn starts_with(it :&Chars, con :&str) -> bool {
-  let mut steps_taken = 0;
   let mut iter = it.clone();
   
   for c in con.chars() {
-    steps_taken += 1;
     if c != iter.next().unwrap_or('/') {
       return false;
     }
   }
-  
-  //it.skip(steps_taken).next();
   
   true
 }

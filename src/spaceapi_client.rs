@@ -193,7 +193,7 @@ mod test {
     assert_eq!(6, n);
   }
   #[test]
-  fn extract_people_now_present_Err() {
+  fn extract_people_now_present_err() {
     let e = extract_people_now_present( minimal_response() ).unwrap_err();
     
     assert_eq!("response contains no sensors.people_now_present", e);
