@@ -100,7 +100,7 @@ fn match_command_word(s :&mut Chars) -> Input {
   if matches_with(s, "webcam") {
     let nth = match match_integer(s) {
       Ok(n) if n >= 0 => Some(n as usize),
-      Ok(_) => None,
+      Ok(_) => return InvalidSyntax("Expected positive Integer".into()),
       Err(_) => None,
     };
     return WebCam{ nth: nth };
@@ -495,6 +495,8 @@ mod test {
     }
   }
   
+  
+  
   #[test]
   fn integer42() {
     let mut s = "42".chars();
@@ -726,6 +728,28 @@ mod test {
     match Input::from( format!("/webcam") ) {
       WebCam{ nth } => if let None = nth { assert!(true) } else { assert!(false) },
       _ => assert!(false),
+    }
+  }
+  
+  #[test]
+  fn webcam_negative_1() {
+    let r = Input::from( format!("/webcam -1") );
+    
+    if let InvalidSyntax(_) = r {
+    } else {
+        println!("Unexpected: {:?}", r);
+        assert!(false) ;
+    }
+  }
+  
+  #[test]
+  fn webcam_negative_13() {
+    let r = Input::from( format!("/webcam -13") );
+    
+    if let InvalidSyntax(_) = r {
+    } else {
+        println!("Unexpected: {:?}", r);
+        assert!(false) ;
     }
   }
   
