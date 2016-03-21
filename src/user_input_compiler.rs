@@ -33,7 +33,7 @@ pub enum Input {
   Cancel,
   Version,
   Help,
-  WebCam{ nth :Option<u64> },
+  WebCam{ nth :Option<usize> },
   Start,
   Grammar,
   InvalidSyntax( String ),
@@ -101,7 +101,7 @@ fn match_command_word(s :&mut Chars) -> Input {
   if starts_with(s, "webcam") {
     s.skip(6 -1).next();
     let nth = match match_integer(s) {
-      Ok(n) if n >= 0 => Some(n as u64),
+      Ok(n) if n >= 0 => Some(n as usize),
       Ok(_) => None,
       Err(_) => None,
     };
@@ -711,6 +711,21 @@ mod test {
       WebCam{ nth } => {
         if let Some(nth) = nth { 
           assert!( if nth == 42 { true } else { info!("wrong Value: {}", nth); false } ) 
+        } else {
+          info!("expected OptionalInteger");
+          assert!(false)
+        }
+      },
+      _ => assert!(false),
+    }
+  }
+  
+  #[test]
+  fn webcam_23() {
+    match Input::from( format!("/webcam 23") ) {
+      WebCam{ nth } => {
+        if let Some(nth) = nth { 
+          assert!( if nth == 23 { true } else { info!("wrong Value: {}", nth); false } ) 
         } else {
           info!("expected OptionalInteger");
           assert!(false)

@@ -1,22 +1,21 @@
 //! # CoredumpBot
 //! 
-//! Works with status.coredump.ch and api.telegram.org
+//! Works with https://status.crdmp.ch/ and api.telegram.org
 
 extern crate telegram_bot;
 extern crate hyper;
 extern crate rustc_serialize;
 extern crate spaceapi;
+extern crate time;
 extern crate env_logger;
 #[macro_use] extern crate log;
 
-use telegram_bot::{Api, ListeningMethod, MessageType, ListeningAction};
-use rustc_serialize::json::Json;
+use telegram_bot::{Api, ListeningMethod, Message, MessageType, ListeningAction};
 
 mod user_input_compiler;
 use user_input_compiler::Input;
 
 mod spaceapi_client;
-use spaceapi_client::fetch_people_now_present;
 
 mod grammar;
 
@@ -25,6 +24,7 @@ fn main() {
     let max_backoff_seconds = 128;
     let min_backoff_seconds = 1;
     let mut backoff_seconds = min_backoff_seconds;
+    let mut sac = spaceapi_client::SpaceApiClient::init();
     let mut last_processed_message_id = 0;
     
     loop {
@@ -33,9 +33,7 @@ fn main() {
         info!("getMe: {:?}", api.get_me());
         let mut listener = api.listener(ListeningMethod::LongPoll(None));
         
-        let path_to_picture :String = "rust-logo-blk.png".to_string();
-        let caption_to_picture :String = "Rust Logo".to_string();
-
+        
         // Fetch new updates via long poll method
         let res = listener.listen(|u| {
             // Restore backoff_seconds, since it works agan
@@ -63,72 +61,92 @@ fn main() {
                         let ts:String = format!("{}", t.trim() );
                         
                         match Input::from(ts) {
-                        Input::WebCam{ nth } => { 
-                            try!(api.send_photo(
-                                    m.chat.id(),
-                                    path_to_picture.clone(), // Path
-                                    Some(caption_to_picture.clone()), // caption
-                                    None, // reply_to_message_id
-                                    None  // reply_markup
-                            ));
+                        Input::WebCam{ nth } => {
+                            let cams = sac.get_webcams();
+                            
+                            let no_filter = if let Some(nth) = nth {
+                                if nth >= cams.len() {
+                                    try!(send_message(&api, m.chat.id(),
+                                        format!("You requested the webcam #{}, but there are just {}", nth, cams.len())
+                                    ));
+                                    return Ok(ListeningAction::Continue);
+                                }
+                                
+                                false
+                            } else {
+                                true
+                            };
+                            
+                            let mut n : usize = 0;
+                            let w =
+                                cams.iter().filter(|_| {
+                                    let b = no_filter || Some(n) == nth;
+                                    n += 1;
+                                    b
+                                })
+                            ;
+                            
+                            for pic_path in w {
+                                let caption = sac.basename(&pic_path);
+                                match sac.get_tmp_path_for_webcam(&pic_path) {
+                                    Ok(pic_tmp_path) => {
+                                        try!(api.send_photo(
+                                                m.chat.id(),
+                                                pic_tmp_path, // Path
+                                                Some(caption.into()), // caption
+                                                None, // reply_to_message_id
+                                                None  // reply_markup
+                                        ));
+                                    },
+                                    Err(e) => {
+                                        println!("WebCam({:?}) Error: {:?}",nth, e);
+                                        // TODO send Error
+                                    },
+                                }
+                            }
                         },
                         Input::Help => {
-                            try!(api.send_message(
-                                    m.chat.id(),
-                                    format!("No such help 😜\nuse /webcam for a snapshot of the 3d printer.\nuse /crowd or /status for an update on people now present\nuse /grammar to receive the spec"),
-                                    None, None, None
-                            ));
+                            try!(send_message(&api, m.chat.id(),
+                                    "No such help 😜\nuse /webcam for a snapshot of the 3d printer.\nuse /crowd or /status for an update on people now present\nuse /grammar to receive the spec".into())
+                            );
                         },
                         Input::Status => {
-                            let s = match fetch_people_now_present() {
+                            let s = match sac.fetch_people_now_present() {
                                 Ok(people_now_present) if people_now_present > 1 =>  format!("Coredump is open\n{} people are present!", people_now_present),
                                 Ok(people_now_present) if people_now_present == 1 => format!("Coredump is open\nOne person is present!"),
                                 Ok(_) => format!("Coredump is closed\nNobody here right now."),
                                 Err(e) => format!("An error occured 😕\n{}", e),
                             };
-                            try!(api.send_message(
-                                    m.chat.id(),
-                                    s,
-                                    None, None, None
-                            ));
+                            try!(send_message(&api, m.chat.id(),s));
                         },
                         Input::Start => {
-                            try!(api.send_message(
-                                    m.chat.id(),
-                                    format!("Welcome to CoredumpBot\nuse /help for a some commands."),
-                                    None, None, None
-                            ));
+                            try!(send_message(&api, m.chat.id(),
+                                    "Welcome to CoredumpBot\nuse /help for a some commands.".into())
+                            );
                         },
                         Input::Version => {
-                            try!(api.send_message(
-                                    m.chat.id(),
-                                    format!("Version: {}", env!("CARGO_PKG_VERSION")),
-                                    None, None, None
-                            ));
+                            try!(send_message(&api, m.chat.id(),
+                                    format!("Version: {}", env!("CARGO_PKG_VERSION")))
+                            );
                         },
                         Input::Grammar => {
-                            try!(api.send_message(
+                            try!(send_message(&api,
                                     m.chat.id(),
                                     grammar::get_grammar_string(),
-                                    None, None, None
                             ));
                         },
                         Input::InvalidSyntax( msg ) => {
                             if m.chat.is_user() {
-                                try!(api.send_message(
-                                        m.chat.id(),
-                                        format!("InvalidSyntax: {}\ntry /grammar", msg),
-                                        None, None, None
+                                try!(send_message(&api, m.chat.id(),
+                                        format!("InvalidSyntax: {}\ntry /grammar", msg)
                                 ));
                             }
                         },
                         _ => {
                             if m.chat.is_user() {
                                 try!(
-                                    api.send_message(
-                                        m.chat.id(),
-                                        format!("Unknown Command ... try /help"),
-                                        None, None, None)
+                                    send_message(&api, m.chat.id(),
+                                        "Unknown Command ... try /help".into())
                                 );
                             }
                         }, 
@@ -137,10 +155,8 @@ fn main() {
                     _ => {
                         if m.chat.is_user() {
                             try!(
-                                api.send_message(
-                                    m.chat.id(),
-                                    format!("Unknown Command ... try /help"),
-                                    None, None, None)
+                                send_message(&api, m.chat.id(),
+                                    "Unknown Command ... try /help".into())
                             );
                         }
                     }
@@ -163,4 +179,13 @@ fn main() {
     }
 }
 
+fn send_message(api: &Api, chat_id: i64, message: String) -> Result<Message,telegram_bot::Error> {
+    api.send_message(
+        chat_id,     // chat_id                  : Integer
+        message,     // text                     : String
+        None,        // parse_mode               : Option<ParseMode>
+        None,        // disable_web_page_preview : Option<bool>
+        None,        // reply_to_message_id      : Option<Integer>
+        None)        // reply_markup             : Option<ReplyMakrup>
+}
 
