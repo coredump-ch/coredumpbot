@@ -162,10 +162,8 @@ fn main() {
                     _ => {
                         if m.chat.is_user() {
                             try!(
-                                api.send_message(
-                                    m.chat.id(),
-                                    format!("Unknown Command ... try /help"),
-                                    None, None, None, None)
+                                send_message(&api, m.chat.id(),
+                                    format!("Unknown Command ... try /help"))
                             );
                         }
                     }
@@ -188,9 +186,9 @@ fn main() {
     }
 }
 
-fn send(api:&Api, m: Message, message :String) -> Result<Message,telegram_bot::Error> {
+fn send_message(api: &Api, chat_id: i64, message: String) -> Result<Message,telegram_bot::Error> {
     api.send_message(
-        m.chat.id(), // chat_id                  : Integer
+        chat_id,     // chat_id                  : Integer
         message,     // text                     : String
         None,        // parse_mode               : Option<ParseMode>
         None,        // disable_web_page_preview : Option<bool>
