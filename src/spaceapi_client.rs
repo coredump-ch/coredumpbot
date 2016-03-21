@@ -111,10 +111,10 @@ fn fetch_status() -> Result<Status,String> {
       let mut body = String::new();
       match res.read_to_string(&mut body) {
         Err(e) => { Err(format!("unable to connect to server, try again later:\nError: {}\nBody: {}", e, body)) },
-        Ok(_/*len*/) => {
+        Ok(len) => {
           
           match json::decode( &*body ) {
-            Err(e) => Err(format!("unable to parse server response: {:?}", e)),
+            Err(e) => Err(format!("unable to parse server response of size {}: {:?}", len, e)),
             Ok(status) => Ok(status),
           }
         }
