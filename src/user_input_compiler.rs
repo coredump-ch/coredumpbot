@@ -79,8 +79,7 @@ fn match_command_word(s :&mut Chars) -> Input {
   if starts_with(s, "status") || starts_with(s, "crowd") {
     return Status;
   } else
-  if starts_with(s, "subscribe") {
-    s.skip(9 -1).next();
+  if matches_with(s, "subscribe") {
     let sensor = extract!(match_sensor_selector(s));
     let duration = extract!(match_duration(s));
     return Subscribe{ sensor: sensor, duration: duration };
@@ -98,8 +97,7 @@ fn match_command_word(s :&mut Chars) -> Input {
     return Help;
   } else
   
-  if starts_with(s, "webcam") {
-    s.skip(6 -1).next();
+  if matches_with(s, "webcam") {
     let nth = match match_integer(s) {
       Ok(n) if n >= 0 => Some(n as usize),
       Ok(_) => None,
@@ -298,7 +296,9 @@ fn match_timesuffix(s :&mut Chars) -> Result<i64, Input> {
   Err( InvalidSyntax(format!("Invalid TimeSuffix")) )
 }
 
-fn starts_with(it :&mut Chars, con :&str) -> bool {
+
+/// Search without modifing the Iterator
+fn starts_with(it :&Chars, con :&str) -> bool {
   let mut steps_taken = 0;
   let mut iter = it.clone();
   
@@ -309,7 +309,24 @@ fn starts_with(it :&mut Chars, con :&str) -> bool {
     }
   }
   
-  it.skip(steps_taken);
+  //it.skip(steps_taken).next();
+  
+  true
+}
+
+/// Search and advance the Iterator
+fn matches_with(it :&mut Chars, con :&str) -> bool {
+  let mut steps_taken = 0;
+  let mut iter = it.clone();
+  
+  for c in con.chars() {
+    steps_taken += 1;
+    if c != iter.next().unwrap_or('/') {
+      return false;
+    }
+  }
+  
+  it.skip(steps_taken -1).next();
   
   true
 }
@@ -346,7 +363,7 @@ fn consume_whitespaces(it :&mut Chars) -> usize {
 mod test {
   use super::*;
   use super::Input::*;
-  use super::{starts_with,match_duration,match_integer,match_real,match_timesuffix};
+  use super::{starts_with,matches_with,match_duration,match_integer,match_real,match_timesuffix};
   use std::time::Duration;
   
   
@@ -371,6 +388,22 @@ mod test {
     assert!( starts_with(&mut s, "abcxyz") == false );
     assert!( starts_with(&mut s, "abcxyz") == false );
     assert!( starts_with(&mut s, "abcd") );
+  }
+  
+  #[test]
+  fn starts_with_final_iterator_state() {
+    let mut s = "abcdef".chars();
+    assert!( starts_with(&mut s, "abcxxx") == false );
+    assert!( starts_with(&mut s, "abcd") );
+    assert_eq!( Some('a'), s.next() );
+  }
+  
+  #[test]
+  fn matches_with_final_iterator_state() {
+    let mut s = "abcdef".chars();
+    assert!( matches_with(&mut s, "abcxxx") == false );
+    assert!( matches_with(&mut s, "abcd") );
+    assert_eq!( Some('e'), s.next() );
   }
   
   // =================== Parser Tests ===================
