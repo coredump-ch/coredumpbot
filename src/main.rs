@@ -1,6 +1,6 @@
 //! # CoredumpBot
 //! 
-//! Works with status.coredump.ch and api.telegram.org
+//! Works with https://status.crdmp.ch/ and api.telegram.org
 
 extern crate telegram_bot;
 extern crate hyper;
@@ -98,11 +98,9 @@ fn main() {
                             }
                         },
                         Input::Help => {
-                            try!(api.send_message(
-                                    m.chat.id(),
-                                    format!("No such help 😜\nuse /webcam for a snapshot of the 3d printer.\nuse /crowd or /status for an update on people now present\nuse /grammar to receive the spec"),
-                                    None, None, None, None
-                            ));
+                            try!(send_message(&api, m.chat.id(),
+                                    "No such help 😜\nuse /webcam for a snapshot of the 3d printer.\nuse /crowd or /status for an update on people now present\nuse /grammar to receive the spec".into())
+                            );
                         },
                         Input::Status => {
                             let s = match sac.fetch_people_now_present() {
@@ -111,49 +109,36 @@ fn main() {
                                 Ok(_) => format!("Coredump is closed\nNobody here right now."),
                                 Err(e) => format!("An error occured 😕\n{}", e),
                             };
-                            try!(api.send_message(
-                                    m.chat.id(),
-                                    s,
-                                    None, None, None, None
-                            ));
+                            try!(send_message(&api, m.chat.id(),s));
                         },
                         Input::Start => {
-                            try!(api.send_message(
-                                    m.chat.id(),
-                                    format!("Welcome to CoredumpBot\nuse /help for a some commands."),
-                                    None, None, None, None
-                            ));
+                            try!(send_message(&api, m.chat.id(),
+                                    "Welcome to CoredumpBot\nuse /help for a some commands.".into())
+                            );
                         },
                         Input::Version => {
-                            try!(api.send_message(
-                                    m.chat.id(),
-                                    format!("Version: {}", env!("CARGO_PKG_VERSION")),
-                                    None, None, None, None
-                            ));
+                            try!(send_message(&api, m.chat.id(),
+                                    format!("Version: {}", env!("CARGO_PKG_VERSION")))
+                            );
                         },
                         Input::Grammar => {
-                            try!(api.send_message(
+                            try!(send_message(&api,
                                     m.chat.id(),
                                     grammar::get_grammar_string(),
-                                    None, None, None, None
                             ));
                         },
                         Input::InvalidSyntax( msg ) => {
                             if m.chat.is_user() {
-                                try!(api.send_message(
-                                        m.chat.id(),
-                                        format!("InvalidSyntax: {}\ntry /grammar", msg),
-                                        None, None, None, None
+                                try!(send_message(&api, m.chat.id(),
+                                        format!("InvalidSyntax: {}\ntry /grammar", msg)
                                 ));
                             }
                         },
                         _ => {
                             if m.chat.is_user() {
                                 try!(
-                                    api.send_message(
-                                        m.chat.id(),
-                                        format!("Unknown Command ... try /help"),
-                                        None, None, None, None)
+                                    send_message(&api, m.chat.id(),
+                                        "Unknown Command ... try /help".into())
                                 );
                             }
                         }, 
@@ -163,7 +148,7 @@ fn main() {
                         if m.chat.is_user() {
                             try!(
                                 send_message(&api, m.chat.id(),
-                                    format!("Unknown Command ... try /help"))
+                                    "Unknown Command ... try /help".into())
                             );
                         }
                     }
