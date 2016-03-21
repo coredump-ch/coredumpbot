@@ -293,10 +293,10 @@ fn match_timesuffix(s :&mut Chars) -> Result<i64, Input> {
 
 
 /// Search without modifing the Iterator
-fn starts_with(it :&Chars, con :&str) -> bool {
-  let mut iter = it.clone();
+fn starts_with(haystack_iter :&Chars, needle :&str) -> bool {
+  let mut iter = haystack_iter.clone();
   
-  for c in con.chars() {
+  for c in needle.chars() {
     if c != iter.next().unwrap_or('/') {
       return false;
     }
@@ -306,18 +306,18 @@ fn starts_with(it :&Chars, con :&str) -> bool {
 }
 
 /// Search and advance the Iterator
-fn matches_with(it :&mut Chars, con :&str) -> bool {
+fn matches_with(haystack_iter :&mut Chars, needle :&str) -> bool {
   let mut steps_taken = 0;
-  let mut iter = it.clone();
+  let mut iter = haystack_iter.clone();
   
-  for c in con.chars() {
+  for c in needle.chars() {
     steps_taken += 1;
     if c != iter.next().unwrap_or('/') {
       return false;
     }
   }
   
-  it.skip(steps_taken -1).next();
+  haystack_iter.skip(steps_taken -1).next();
   
   true
 }
