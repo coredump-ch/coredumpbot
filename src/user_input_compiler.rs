@@ -98,7 +98,7 @@ fn match_command_word(s :&mut Chars) -> Input {
   } else
   
   if matches_with(s, "webcam") {
-    let nth = match match_integer(s) {
+    let nth = match match_full_integer(s) {
       Ok(n) if n >= 0 => Some(n as usize),
       Ok(_) => return InvalidSyntax("Expected positive Integer".into()),
       Err(_) => None,
@@ -241,6 +241,23 @@ fn collect_real(s: &mut Chars) -> Result<String, Input> {
   Ok( i1 )
 }
 
+fn match_full_integer(s :&mut Chars) -> Result<i64, Input> {
+  let _ = consume_whitespaces(s);
+  let sign = if let Some(c) = s.clone().next() { if c == '-' { -1 } else { 1 } } else { 1 };
+  
+  if sign < 0 {
+    s.next();
+  }
+  
+  
+  
+  let st :String = try!(collect_integer(s));
+  match st.parse::<i64>() {
+    Ok(val)  => Ok(sign * val),
+    Err(msg) => Err( InvalidSyntax(format!("Invalid Integer: {:?}", msg)) ),
+  }
+}
+
 fn match_integer(s :&mut Chars) -> Result<i64, Input> {
   let st :String = try!(collect_integer(s));
   match st.parse::<i64>() {
@@ -352,9 +369,10 @@ fn consume_whitespaces(it :&mut Chars) -> usize {
 
 #[cfg(test)]
 mod test {
+  #![allow(non_snake_case)] // may change to non_snake_case_functions
   use super::*;
   use super::Input::*;
-  use super::{starts_with,matches_with,match_duration,match_integer,match_real,match_timesuffix};
+  use super::{starts_with, matches_with, consume_whitespaces, match_duration, match_integer, match_full_integer, match_real, match_timesuffix};
   use std::time::Duration;
   
   
@@ -395,6 +413,15 @@ mod test {
     assert!( matches_with(&mut s, "abcxxx") == false );
     assert!( matches_with(&mut s, "abcd") );
     assert_eq!( Some('e'), s.next() );
+  }
+  
+  #[test]
+  fn consume_whitespaces_iter_position() {
+    let mut s = "    -".chars();
+    let w = consume_whitespaces(&mut s);
+    
+    assert_eq!( 4, w );
+    assert_eq!( Some('-'), s.next() );
   }
   
   // =================== Parser Tests ===================
@@ -501,6 +528,30 @@ mod test {
   fn integer42() {
     let mut s = "42".chars();
     assert_eq!(42, match_integer(&mut s).unwrap());
+  }
+  
+  #[test]
+  fn integer_neg42() {
+    let mut s = "-42".chars();
+    let r = match_integer(&mut s);
+    
+    if let Err(_) = r  {
+    } else {
+      println!("Unexpected: {:?}", r);
+      assert!(false)
+    }
+  }
+  
+  #[test]
+  fn integer__neg42() {
+    let mut s = " -42 ".chars();
+    let r = match_integer(&mut s);
+    
+    if let Err(_) = r  {
+    } else {
+      println!("Unexpected: {:?}", r);
+      assert!(false)
+    }
   }
   
   #[test]
@@ -621,7 +672,7 @@ mod test {
     match match_timesuffix(&mut s) {
       Ok(v) => assert_eq!(60, v),
       Err(e) => {
-        info!("{:?}", e);
+        println!("{:?}", e);
         assert!(false);
       },
     }
@@ -633,14 +684,14 @@ mod test {
     match match_real(&mut s) {
       Ok(v) => assert_eq!(12.3, v),
       Err(e) => {
-        info!("{:?}", e);
+        println!("{:?}", e);
         assert!(false);
       },
     }
     match match_real(&mut s) {
       Ok(v) => assert_eq!(45.6, v),
       Err(e) => {
-        info!("{:?}", e);
+        println!("{:?}", e);
         assert!(false);
       },
     }
@@ -651,9 +702,9 @@ mod test {
   fn real6_punkt_6() {
     let mut s = "6..6".chars();
     match match_real(&mut s) {
-      Ok(v) => assert!(false),
+      Ok(_) => assert!(false),
       Err(e) => {
-        info!("====={:?}", e);
+        println!("====={:?}", e);
         assert!(true);
       },
     }
@@ -721,6 +772,27 @@ mod test {
     assert_eq!("  bla  ", s.collect::<String>());
   }
   
+  #[test]
+  fn match_integer_fail_neg42() {
+    let mut s = "  -42  ".chars();
+    let r = match_integer(&mut s);
+    
+    println!("Unexpected: {:?}", r);
+    if let Err(_) = r {
+    } else {
+      assert!(false)
+    }
+  }
+  
+  #[test]
+  fn match_full_integer_neg42() {
+    let mut s = "  -42  ".chars();
+    let r = match_full_integer(&mut s);
+    
+    println!("Unexpected: {:?}", r);
+    assert_eq!( -42, r.unwrap_or(0) )
+  }
+  
   
   
   #[test]
@@ -758,9 +830,9 @@ mod test {
     match Input::from( format!("/webcam 42") ) {
       WebCam{ nth } => {
         if let Some(nth) = nth { 
-          assert!( if nth == 42 { true } else { info!("wrong Value: {}", nth); false } ) 
+          assert!( if nth == 42 { true } else { println!("wrong Value: {}", nth); false } ) 
         } else {
-          info!("expected OptionalInteger");
+          println!("expected OptionalInteger");
           assert!(false)
         }
       },
@@ -773,9 +845,9 @@ mod test {
     match Input::from( format!("/webcam 23") ) {
       WebCam{ nth } => {
         if let Some(nth) = nth { 
-          assert!( if nth == 23 { true } else { info!("wrong Value: {}", nth); false } ) 
+          assert!( if nth == 23 { true } else { println!("wrong Value: {}", nth); false } ) 
         } else {
-          info!("expected OptionalInteger");
+          println!("expected OptionalInteger");
           assert!(false)
         }
       },
