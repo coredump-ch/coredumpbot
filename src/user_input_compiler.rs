@@ -240,8 +240,11 @@ fn collect_real(s: &mut Chars) -> Result<String, Input> {
 
 fn match_full_integer(s :&mut Chars) -> Result<i64, Input> {
   let _ = consume_whitespaces(s);
-  let sign = if let Some(c) = s.clone().next() { if c == '-' { -1 } else { 1 } } else { 1 };
+  let sign = if let Some(c) = s.clone().next() {
+    if c == '-' { -1 } else { 1 }
+  } else { 1 };
   
+  // Skip '-'
   if sign < 0 {
     s.next();
   }
