@@ -181,21 +181,21 @@ mod test {
   
   #[test]
   fn extract_people_now_present_0() {
-    let n = extract_people_now_present( good_response() ).unwrap();
+    let n = extract_people_now_present( good_response() );
     
-    assert_eq!(0, n);
+    assert_eq!( Ok(0), n );
   }
   #[test]
   fn extract_people_now_present_6() {
-    let n = extract_people_now_present( cam_response() ).unwrap();
+    let n = extract_people_now_present( cam_response() );
     
-    assert_eq!(6, n);
+    assert_eq!( Ok(6), n );
   }
   #[test]
   fn extract_people_now_present_err() {
-    let e = extract_people_now_present( minimal_response() ).unwrap_err();
+    let e = extract_people_now_present( minimal_response() );
     
-    assert_eq!("response contains no sensors.people_now_present", e);
+    assert_eq!( Err("response contains no sensors.people_now_present".into()), e );
   }
 }
 
