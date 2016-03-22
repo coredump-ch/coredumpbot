@@ -825,14 +825,7 @@ mod test {
   #[test]
   fn webcam_42() {
     match Input::from( format!("/webcam 42") ) {
-      WebCam{ nth } => {
-        if let Some(nth) = nth { 
-          assert!( if nth == 42 { true } else { println!("wrong Value: {}", nth); false } ) 
-        } else {
-          println!("expected OptionalInteger");
-          assert!(false)
-        }
-      },
+      WebCam{ nth } => assert_eq!(Some(42), nth),
       _ => assert!(false),
     }
   }
@@ -840,14 +833,7 @@ mod test {
   #[test]
   fn webcam_23() {
     match Input::from( format!("/webcam 23") ) {
-      WebCam{ nth } => {
-        if let Some(nth) = nth { 
-          assert!( if nth == 23 { true } else { println!("wrong Value: {}", nth); false } ) 
-        } else {
-          println!("expected OptionalInteger");
-          assert!(false)
-        }
-      },
+      WebCam{ nth } => assert_eq!(Some(23), nth),
       _ => assert!(false),
     }
   }
