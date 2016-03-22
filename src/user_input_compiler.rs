@@ -216,10 +216,7 @@ fn match_duration(s :&mut Chars) -> Result<Duration,Input> {
 
 fn match_real(s: &mut Chars) -> Result<f64, Input> {
   let st :String = try!(collect_real(s));
-  match st.parse::<f64>() {
-    Ok(val)  => Ok(val),
-    Err(msg) => Err( InvalidSyntax(format!("Invalid Real: {:?}", msg)) )
-  }
+  st.parse::<f64>().map_err(|msg| InvalidSyntax(format!("Invalid Real: {:?}", msg)) )
 }
 
 /// Real            := Integer "." Integer | Integer
@@ -260,10 +257,7 @@ fn match_full_integer(s :&mut Chars) -> Result<i64, Input> {
 
 fn match_integer(s :&mut Chars) -> Result<i64, Input> {
   let st :String = try!(collect_integer(s));
-  match st.parse::<i64>() {
-    Ok(val)  => Ok(val),
-    Err(msg) => Err( InvalidSyntax(format!("Invalid Integer: {:?}", msg)) ),
-  }
+  st.parse::<i64>().map_err( |msg| InvalidSyntax(format!("Invalid Integer: {:?}", msg)) )
 }
 
 /// Integer         := [0-9]*
