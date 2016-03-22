@@ -7,7 +7,6 @@ use spaceapi::{Status};
 use spaceapi::sensors::{PeopleNowPresentSensor};
 
 use std::time::Duration;
-use time::SteadyTime;
 use std::env;
 use std::fs::{self, File};
 use std::io;
@@ -193,7 +192,7 @@ mod test {
     assert_eq!(6, n);
   }
   #[test]
-  fn extract_people_now_present_Err() {
+  fn extract_people_now_present_err() {
     let e = extract_people_now_present( minimal_response() ).unwrap_err();
     
     assert_eq!("response contains no sensors.people_now_present", e);

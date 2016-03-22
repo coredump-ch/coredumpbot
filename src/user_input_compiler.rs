@@ -79,8 +79,7 @@ fn match_command_word(s :&mut Chars) -> Input {
   if starts_with(s, "status") || starts_with(s, "crowd") {
     return Status;
   } else
-  if starts_with(s, "subscribe") {
-    s.skip(9 -1).next();
+  if matches_with(s, "subscribe") {
     let sensor = extract!(match_sensor_selector(s));
     let duration = extract!(match_duration(s));
     return Subscribe{ sensor: sensor, duration: duration };
@@ -98,11 +97,10 @@ fn match_command_word(s :&mut Chars) -> Input {
     return Help;
   } else
   
-  if starts_with(s, "webcam") {
-    s.skip(6 -1).next();
-    let nth = match match_integer(s) {
+  if matches_with(s, "webcam") {
+    let nth = match match_full_integer(s) {
       Ok(n) if n >= 0 => Some(n as usize),
-      Ok(_) => None,
+      Ok(_) => return InvalidSyntax("Expected positive Integer".into()),
       Err(_) => None,
     };
     return WebCam{ nth: nth };
@@ -116,7 +114,7 @@ fn match_command_word(s :&mut Chars) -> Input {
     return Start;
   } else {
   
-    return InvalidSyntax( format!("Invalid CommandWord") );
+    return InvalidSyntax( "Invalid CommandWord".into() );
   }
 }
 
@@ -218,12 +216,7 @@ fn match_duration(s :&mut Chars) -> Result<Duration,Input> {
 
 fn match_real(s: &mut Chars) -> Result<f64, Input> {
   let st :String = try!(collect_real(s));
-  match st.parse::<f64>() {
-    Ok(val) => {
-      Ok(val)
-    },
-    Err(msg) => Err( InvalidSyntax(format!("Invalid Real: {:?}", msg)) )
-  }
+  st.parse::<f64>().map_err(|msg| InvalidSyntax(format!("Invalid Real: {:?}", msg)) )
 }
 
 /// Real            := Integer "." Integer | Integer
@@ -245,15 +238,29 @@ fn collect_real(s: &mut Chars) -> Result<String, Input> {
   Ok( i1 )
 }
 
-fn match_integer(s :&mut Chars) -> Result<i64, Input> {
+fn match_full_integer(s :&mut Chars) -> Result<i64, Input> {
+  let _ = consume_whitespaces(s);
+  let sign = if let Some(c) = s.clone().next() {
+    if c == '-' { -1 } else { 1 }
+  } else { 1 };
+  
+  // Skip '-'
+  if sign < 0 {
+    s.next();
+  }
+  
+  
+  
   let st :String = try!(collect_integer(s));
   match st.parse::<i64>() {
-    Ok(val) => {
-      //s.skip(st.len() -1).next();
-      Ok(val)
-    },
+    Ok(val)  => Ok(sign * val),
     Err(msg) => Err( InvalidSyntax(format!("Invalid Integer: {:?}", msg)) ),
   }
+}
+
+fn match_integer(s :&mut Chars) -> Result<i64, Input> {
+  let st :String = try!(collect_integer(s));
+  st.parse::<i64>().map_err( |msg| InvalidSyntax(format!("Invalid Integer: {:?}", msg)) )
 }
 
 /// Integer         := [0-9]*
@@ -298,18 +305,33 @@ fn match_timesuffix(s :&mut Chars) -> Result<i64, Input> {
   Err( InvalidSyntax(format!("Invalid TimeSuffix")) )
 }
 
-fn starts_with(it :&mut Chars, con :&str) -> bool {
-  let mut steps_taken = 0;
-  let mut iter = it.clone();
+
+/// Search without modifing the Iterator
+fn starts_with(haystack_iter :&Chars, needle :&str) -> bool {
+  let mut iter = haystack_iter.clone();
   
-  for c in con.chars() {
+  for c in needle.chars() {
+    if c != iter.next().unwrap_or('/') {
+      return false;
+    }
+  }
+  
+  true
+}
+
+/// Search and advance the Iterator
+fn matches_with(haystack_iter :&mut Chars, needle :&str) -> bool {
+  let mut steps_taken = 0;
+  let mut iter = haystack_iter.clone();
+  
+  for c in needle.chars() {
     steps_taken += 1;
     if c != iter.next().unwrap_or('/') {
       return false;
     }
   }
   
-  it.skip(steps_taken);
+  haystack_iter.skip(steps_taken -1).next();
   
   true
 }
@@ -344,9 +366,10 @@ fn consume_whitespaces(it :&mut Chars) -> usize {
 
 #[cfg(test)]
 mod test {
+  #![allow(non_snake_case)] // may change to non_snake_case_functions
   use super::*;
   use super::Input::*;
-  use super::{starts_with,match_duration,match_integer,match_real,match_timesuffix};
+  use super::{starts_with, matches_with, consume_whitespaces, match_duration, match_integer, match_full_integer, match_real, match_timesuffix};
   use std::time::Duration;
   
   
@@ -371,6 +394,31 @@ mod test {
     assert!( starts_with(&mut s, "abcxyz") == false );
     assert!( starts_with(&mut s, "abcxyz") == false );
     assert!( starts_with(&mut s, "abcd") );
+  }
+  
+  #[test]
+  fn starts_with_final_iterator_state() {
+    let mut s = "abcdef".chars();
+    assert!( starts_with(&mut s, "abcxxx") == false );
+    assert!( starts_with(&mut s, "abcd") );
+    assert_eq!( Some('a'), s.next() );
+  }
+  
+  #[test]
+  fn matches_with_final_iterator_state() {
+    let mut s = "abcdef".chars();
+    assert!( matches_with(&mut s, "abcxxx") == false );
+    assert!( matches_with(&mut s, "abcd") );
+    assert_eq!( Some('e'), s.next() );
+  }
+  
+  #[test]
+  fn consume_whitespaces_iter_position() {
+    let mut s = "    -".chars();
+    let w = consume_whitespaces(&mut s);
+    
+    assert_eq!( 4, w );
+    assert_eq!( Some('-'), s.next() );
   }
   
   // =================== Parser Tests ===================
@@ -471,10 +519,36 @@ mod test {
     }
   }
   
+  
+  
   #[test]
   fn integer42() {
     let mut s = "42".chars();
     assert_eq!(42, match_integer(&mut s).unwrap());
+  }
+  
+  #[test]
+  fn integer_neg42() {
+    let mut s = "-42".chars();
+    let r = match_integer(&mut s);
+    
+    if let Err(_) = r  {
+    } else {
+      println!("Unexpected: {:?}", r);
+      assert!(false)
+    }
+  }
+  
+  #[test]
+  fn integer__neg42() {
+    let mut s = " -42 ".chars();
+    let r = match_integer(&mut s);
+    
+    if let Err(_) = r  {
+    } else {
+      println!("Unexpected: {:?}", r);
+      assert!(false)
+    }
   }
   
   #[test]
@@ -595,7 +669,7 @@ mod test {
     match match_timesuffix(&mut s) {
       Ok(v) => assert_eq!(60, v),
       Err(e) => {
-        info!("{:?}", e);
+        println!("{:?}", e);
         assert!(false);
       },
     }
@@ -607,14 +681,14 @@ mod test {
     match match_real(&mut s) {
       Ok(v) => assert_eq!(12.3, v),
       Err(e) => {
-        info!("{:?}", e);
+        println!("{:?}", e);
         assert!(false);
       },
     }
     match match_real(&mut s) {
       Ok(v) => assert_eq!(45.6, v),
       Err(e) => {
-        info!("{:?}", e);
+        println!("{:?}", e);
         assert!(false);
       },
     }
@@ -625,9 +699,9 @@ mod test {
   fn real6_punkt_6() {
     let mut s = "6..6".chars();
     match match_real(&mut s) {
-      Ok(v) => assert!(false),
+      Ok(_) => assert!(false),
       Err(e) => {
-        info!("====={:?}", e);
+        println!("====={:?}", e);
         assert!(true);
       },
     }
@@ -695,6 +769,27 @@ mod test {
     assert_eq!("  bla  ", s.collect::<String>());
   }
   
+  #[test]
+  fn match_integer_fail_neg42() {
+    let mut s = "  -42  ".chars();
+    let r = match_integer(&mut s);
+    
+    println!("Unexpected: {:?}", r);
+    if let Err(_) = r {
+    } else {
+      assert!(false)
+    }
+  }
+  
+  #[test]
+  fn match_full_integer_neg42() {
+    let mut s = "  -42  ".chars();
+    let r = match_full_integer(&mut s);
+    
+    println!("Unexpected: {:?}", r);
+    assert_eq!( -42, r.unwrap_or(0) )
+  }
+  
   
   
   #[test]
@@ -706,13 +801,35 @@ mod test {
   }
   
   #[test]
+  fn webcam_negative_1() {
+    let r = Input::from( format!("/webcam -1") );
+    
+    if let InvalidSyntax(_) = r {
+    } else {
+        println!("Unexpected: {:?}", r);
+        assert!(false) ;
+    }
+  }
+  
+  #[test]
+  fn webcam_negative_13() {
+    let r = Input::from( format!("/webcam -13") );
+    
+    if let InvalidSyntax(_) = r {
+    } else {
+        println!("Unexpected: {:?}", r);
+        assert!(false) ;
+    }
+  }
+  
+  #[test]
   fn webcam_42() {
     match Input::from( format!("/webcam 42") ) {
       WebCam{ nth } => {
         if let Some(nth) = nth { 
-          assert!( if nth == 42 { true } else { info!("wrong Value: {}", nth); false } ) 
+          assert!( if nth == 42 { true } else { println!("wrong Value: {}", nth); false } ) 
         } else {
-          info!("expected OptionalInteger");
+          println!("expected OptionalInteger");
           assert!(false)
         }
       },
@@ -725,9 +842,9 @@ mod test {
     match Input::from( format!("/webcam 23") ) {
       WebCam{ nth } => {
         if let Some(nth) = nth { 
-          assert!( if nth == 23 { true } else { info!("wrong Value: {}", nth); false } ) 
+          assert!( if nth == 23 { true } else { println!("wrong Value: {}", nth); false } ) 
         } else {
-          info!("expected OptionalInteger");
+          println!("expected OptionalInteger");
           assert!(false)
         }
       },

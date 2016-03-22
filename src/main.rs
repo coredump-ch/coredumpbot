@@ -6,7 +6,6 @@ extern crate telegram_bot;
 extern crate hyper;
 extern crate rustc_serialize;
 extern crate spaceapi;
-extern crate time;
 extern crate env_logger;
 #[macro_use] extern crate log;
 
@@ -19,10 +18,12 @@ mod spaceapi_client;
 
 mod grammar;
 
+use std::time::Duration;
+
 fn main() {
     env_logger::init().unwrap();
-    let max_backoff_seconds = 128;
-    let min_backoff_seconds = 1;
+    let max_backoff_seconds = Duration::from_secs(128);
+    let min_backoff_seconds = Duration::from_secs(1);
     let mut backoff_seconds = min_backoff_seconds;
     let mut sac = spaceapi_client::SpaceApiClient::init();
     let mut last_processed_message_id = 0;
@@ -168,12 +169,12 @@ fn main() {
         });
 
         if let Err(e) = res {
-            warn!("An error occured: {}\nSleeping for {} Seconds", e, backoff_seconds);
+            warn!("An error occured: {}\nSleeping for {} Seconds", e, backoff_seconds.as_secs());
             // Rest for 10 Seconds
-            std::thread::sleep_ms(backoff_seconds * 1000);
+            std::thread::sleep(backoff_seconds);
             
             if backoff_seconds < max_backoff_seconds {
-                backoff_seconds *= 2;
+                backoff_seconds = backoff_seconds * 2u32;
             }
         }
     }
