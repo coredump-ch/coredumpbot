@@ -8,8 +8,8 @@ authors = [
 [dependencies]
 log = "^0.3"
 env_logger = "^0.3"
-telegram-bot = { git = "https://github.com/dns2utf8/telegram-bot.git", branch = "update_hyper-0.8" }
-#"^0.4"
+telegram-bot = "^0.4"
+#{ git = "https://github.com/dns2utf8/telegram-bot.git", branch = "update_hyper-0.8" }
 hyper = "^0.8"
 rustc-serialize = "^0.3"
 spaceapi = "^0.2"
