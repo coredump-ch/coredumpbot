@@ -4,7 +4,7 @@
 //! 
 //! Command         := "/" CommandWord
 //! CommandWord     := Status | Subscribe | Cancel | Version | Help | WebCam | Start | Grammar | Location | InvalidSyntax
-//! Status          := "status" | "crowd"
+//! Status          := "status"
 //! Subscribe       := "subscribe" SensorSelector Duration
 //! SensorSelector  := SensorString OptionalInteger
 //! SensorString    := "account_balance" | "barometer" | "beverage_supply" | "door_locked" | "humidity" | "network_connections" | "power_consumption" | "temperature" | "total_member_count" | "radiation.alpha" | "radiation.beta_gamma" | "radiation.beta" | "radiation.gamma" | "people_now_present" | "wind"
@@ -78,7 +78,7 @@ impl From<String> for Input {
 }
 
 fn match_command_word(s :&mut Chars) -> Input {
-  if starts_with(s, "status") || starts_with(s, "crowd") {
+  if starts_with(s, "status") {
     return Status;
   } else
   if matches_with(s, "subscribe") {
@@ -442,8 +442,8 @@ mod test {
   }
   
   #[test]
-  fn crowd() {
-    assert_eq!(Status, Input::from( format!("/crowd") ) )
+  fn crowd() { // cancelled with 0.3.0
+    assert_eq!(InvalidSyntax("Invalid CommandWord".into()), Input::from( format!("/crowd") ) )
   }
   
   #[test]

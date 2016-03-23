@@ -113,7 +113,7 @@ fn main() {
                             );
                         },
                         Input::Status => {
-                            let s = match sac.fetch_people_now_present() {
+                            let s = match sac.fetch_aggregated_status() {
                                 Ok(people_now_present) => people_now_present,
                                 Err(e) => format!("An error occured 😕\n{}", e),
                             };

@@ -3,7 +3,7 @@ use std::io::prelude::*;
 use rustc_serialize::json;
 use hyper::Client;
 use spaceapi::Optional::{self, Value, Absent};
-use spaceapi::{Status, Sensors, Location};
+use spaceapi::{Status, Location};
 
 use std::env;
 use std::fs::{self, File};
@@ -33,10 +33,10 @@ impl SpaceApiClient {
     s
   }
   
-  pub fn fetch_people_now_present(&mut self) -> ::std::result::Result<String, String> {
+  pub fn fetch_aggregated_status(&mut self) -> ::std::result::Result<String, String> {
     self.fetch_from_api();
     
-    extract_people_now_present(self.status.sensors.clone())
+    aggregate_status(self.status.clone())
   }
 
   fn fetch_from_api(&mut self) {
@@ -128,39 +128,80 @@ fn fetch_binary(url :&String) -> Result<Vec<u8>,io::Error> {
   }
 }
 
-fn extract_people_now_present(status : Optional<Sensors>) -> Result<String, String> {
-  match status {
-    Absent => Err(format!("response contains no sensors")),
+
+fn aggregate_status(status : Status) -> Result<String, String> {
+  let msg : Option<String> = status.state.message.into();
+  let mut r = format!("{}\n\n", msg.unwrap_or( status.space ));
+  
+  if let Value(sensors) = status.sensors {
+    let pnp = match extract_sensors(sensors.people_now_present, "people_now_present") {
+      Ok(o) => {
+        o.into_iter().map(|e| {
+  format!("In {} are {} people.\n", e.location.unwrap_or_else(|| "unknown".into()), e.value)
+        }).collect()
+      },
+      Err(e) => e,
+    };
+    r = r + &pnp + "\n";
+    
+    let temp = match extract_sensors(sensors.temperature, "temperature") {
+      Ok(o) => {
+        o.into_iter().map(|e| {
+          let name : Option<String> = e.name.into();
+          format!("{} ({}): {}{}\n", name.unwrap_or("Unidentified Sensor".into()), e.location, e.value, e.unit)
+        }).collect()
+      },
+      Err(e) => e,
+    };
+    r = r + &temp;
+    
+  } else {
+    r = r + "SpaceAPI response contains no sensors";
+    return Err(r);
+  }
+  
+  
+  Ok(r)
+}
+
+fn extract_sensors<T>(sensors : Optional<Vec<T>>, name : &str) -> Result<Vec<T>, String> {
+  match sensors {
+    Absent => Err(format!("SpaceAPI response contains no {} sensors.", name)),
     Value(sensors) => {
-      match sensors.people_now_present {
-        Absent => Err(format!("response contains no sensors.people_now_present")),
-        Value(sensors) => {
-          if sensors.is_empty() {
-            Err(format!("response.sensors.people_now_present is empty"))
-          } else {
-            let mut r = "".into();
-            
-            for pnp in sensors {
-              let value_s = match pnp.value {
-                0 => format!("Coredump is closed\nNobody here right now."),
-                1 => format!("Coredump is open\nOne person is present!"),
-                people_now_present =>  format!("Coredump is open\n{} people are present!", people_now_present),
-              };
-              r = format!("{}\n{}: {}", r, pnp.location.unwrap_or_else(|| "unknown".into()), value_s);
-            }
-            
-            Ok(r)
-          }
-        }
+      if sensors.is_empty() {
+        Err(format!("SpaceAPI response has an empty list of {} sensors.", name))
+      } else {
+        Ok(sensors)
       }
     }
   }
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #[cfg(test)]
 mod test {
-  use super::{SpaceApiClient, extract_people_now_present};
+  use super::{SpaceApiClient, aggregate_status};
   use spaceapi::{Status, Location, Contact};
   use spaceapi::optional::Optional;
   use spaceapi::sensors::{TemperatureSensor, PeopleNowPresentSensor};
@@ -185,23 +226,26 @@ mod test {
   }
   
   
+  
   #[test]
-  fn extract_people_now_present_0() {
-    let n = extract_people_now_present( good_response().sensors.clone() );
+  fn aggregate_status_closed() {
+    let n = aggregate_status( good_response() );
     
-    assert_eq!( Ok("\nHackerspace: Coredump is closed\nNobody here right now.".into()), n );
+    assert_eq!( Ok("Open every Monday from 20:00\n\nIn Hackerspace are 0 people.\n\nRaspberry CPU (Hackerspace): 55.7\u{b0}C\n".into()), n );
   }
+  
   #[test]
-  fn extract_people_now_present_6() {
-    let n = extract_people_now_present( cam_response().sensors.clone() );
+  fn aggregate_status_6() {
+    let n = aggregate_status( minimal_response() );
     
-    assert_eq!( Ok("\nHackerspace: Coredump is open\n6 people are present!".into()), n );
+    assert_eq!( Ok("Open every Monday from 20:00\n\nSpaceAPI response contains no people_now_present sensors.\nRaspberry CPU (Hackerspace): 55.7\u{b0}C\n".into()), n );
   }
+  
   #[test]
-  fn extract_people_now_present_err() {
-    let e = extract_people_now_present( minimal_response().sensors.clone() );
+  fn aggregate_status_err() {
+    let n = aggregate_status( cam_response() );
     
-    assert_eq!( Err("response contains no sensors.people_now_present".into()), e );
+    assert_eq!( Ok("6 people here right now\n\nIn Hackerspace are 6 people.\n\nRaspberry CPU (Hackerspace): 48.7\u{b0}C\n".into()), n );
   }
 }
 

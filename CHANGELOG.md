@@ -13,6 +13,9 @@ Every Message starts with one of the following words:
 
 ## [Unreleased]
 
+ - Remove /crowd
+ - Add temperatures and status text to /status
+
 ## [0.2.8] - 2016-05-13
 
  - Add /location

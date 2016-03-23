@@ -46,6 +46,6 @@ mod test {
     println!("alles: {:?}", g);
     // TODO real Test
     assert!(g.is_empty() == false);
-    //assert!("\n\n".is_suffix_of(g));
+    assert_eq!(format!(":= *\n\n"), g[(g.len()-6)..]);
   }
 }
