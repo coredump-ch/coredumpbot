@@ -43,7 +43,7 @@ mod test {
   #[test]
   fn print_grammar_string() {
     let g :String = get_grammar_string();
-    info!("alles: {:?}", g);
+    println!("alles: {:?}", g);
     // TODO real Test
     assert!(g.is_empty() == false);
     //assert!("\n\n".is_suffix_of(g));

@@ -26,7 +26,7 @@
 use std::time::Duration;
 use std::str::Chars;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Input {
   Status,
   Subscribe{ sensor :SensorSelector, duration :Duration },
@@ -38,7 +38,7 @@ pub enum Input {
   Grammar,
   InvalidSyntax( String ),
 }
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct SensorSelector {
   sensor_selector :String,
   nth :Option<u64>,
@@ -364,6 +364,8 @@ fn consume_whitespaces(it :&mut Chars) -> usize {
 }
 
 
+
+
 #[cfg(test)]
 mod test {
   #![allow(non_snake_case)] // may change to non_snake_case_functions
@@ -425,98 +427,46 @@ mod test {
   
   #[test]
   fn empty_2_fail() {
-    match Input::from( format!("") ) {
-      InvalidSyntax(m) => assert_eq!("Empty Request", m),
-      _ => assert!(false),
-    }
+    assert_eq!(InvalidSyntax("Empty Request".into()), Input::from(format!("")))
   }
   
   #[test]
   fn status() {
-    match Input::from( format!("/status") ) {
-      Status => assert!(true),
-      _ => assert!(false)
-    }
+    assert_eq!(Status, Input::from( format!("/status") ) )
   }
   
   #[test]
   fn crowd() {
-    match Input::from( format!("/crowd") ) {
-      Status => assert!(true),
-      _ => assert!(false)
-    }
+    assert_eq!(Status, Input::from( format!("/crowd") ) )
   }
   
   #[test]
   fn subscribe_pnp_10min() {
-    match Input::from( format!("/subscribe people_now_present 10min") ) {
-      Subscribe{ sensor, duration } => {
-        assert_eq!("people_now_present", sensor.sensor_selector);
-        assert_eq!(None, sensor.nth);
-        assert_eq!(10 * 60, duration.as_secs());
-      },
-      InvalidSyntax(msg) => {
-        info!("{}", msg);
-        assert!(false);
-      },
-      _ => assert!(false)
-    }
+    assert_eq!(Subscribe{ sensor: SensorSelector{ sensor_selector: "people_now_present".into(), nth: None }, duration: Duration::from_secs(10*60) } 
+        , Input::from( format!("/subscribe people_now_present 10min") ) )
   }
   
   #[test]
   fn subscribe_pnp_13_10min() {
-    match Input::from( format!("/subscribe people_now_present 13 10min") ) {
-      Subscribe{ sensor, duration } => {
-        assert_eq!("people_now_present", sensor.sensor_selector);
-        assert_eq!(Some(13), sensor.nth);
-        assert_eq!(10 * 60, duration.as_secs());
-      },
-      InvalidSyntax(msg) => {
-        info!("{}", msg);
-        assert!(false);
-      },
-      _ => assert!(false)
-    }
+    assert_eq!(Subscribe{ sensor: SensorSelector{ sensor_selector: "people_now_present".into(), nth: Some(13) }, duration: Duration::from_secs(10*60) } 
+        , Input::from( format!("/subscribe people_now_present 13 10min") ) )
   }
   
   #[test]
   fn subscribe_pnp_2h() {
-    match Input::from( format!("/subscribe people_now_present 2h") ) {
-      Subscribe{ sensor, duration } => {
-        assert_eq!("people_now_present", sensor.sensor_selector);
-        assert_eq!(None, sensor.nth);
-        assert_eq!(2 * 60 * 60, duration.as_secs());
-      },
-      InvalidSyntax(msg) => {
-        info!("{}", msg);
-        assert!(false);
-      },
-      _ => assert!(false)
-    }
+    assert_eq!(Subscribe{ sensor: SensorSelector{ sensor_selector: "people_now_present".into(), nth: None }, duration: Duration::from_secs(2*60*60) } 
+        , Input::from( format!("/subscribe people_now_present 2h") ) )
   }
   
   #[test]
   fn subscribe_pnp_7d() {
-    match Input::from( format!("/subscribe people_now_present 7d") ) {
-      Subscribe{ sensor, duration } => {
-        assert_eq!("people_now_present", sensor.sensor_selector);
-        assert_eq!(None, sensor.nth);
-        assert_eq!(7 * 60 * 60 * 24, duration.as_secs());
-      },
-      InvalidSyntax(msg) => {
-        info!("{}", msg);
-        assert!(false);
-      },
-      _ => assert!(false)
-    }
+    assert_eq!(Subscribe{ sensor: SensorSelector{ sensor_selector: "people_now_present".into(), nth: None }, duration: Duration::from_secs(7*60*60*24) } 
+        , Input::from( format!("/subscribe people_now_present 7d") ) )
   }
   
   #[test]
   fn cancel() {
-    match Input::from( format!("/cancel") ) {
-      Cancel => assert!(true),
-      _ => assert!(false)
-    }
+    assert_eq!(Cancel, Input::from( format!("/cancel") ) )
   }
   
   
@@ -524,341 +474,176 @@ mod test {
   #[test]
   fn integer42() {
     let mut s = "42".chars();
-    assert_eq!(42, match_integer(&mut s).unwrap());
+    assert_eq!(Ok(42), match_integer(&mut s));
   }
   
   #[test]
   fn integer_neg42() {
     let mut s = "-42".chars();
-    let r = match_integer(&mut s);
-    
-    if let Err(_) = r  {
-    } else {
-      println!("Unexpected: {:?}", r);
-      assert!(false)
-    }
+    assert_eq!(Err(InvalidSyntax("Invalid Integer".into())), match_integer(&mut s))
   }
   
   #[test]
   fn integer__neg42() {
-    let mut s = " -42 ".chars();
-    let r = match_integer(&mut s);
-    
-    if let Err(_) = r  {
-    } else {
-      println!("Unexpected: {:?}", r);
-      assert!(false)
-    }
+    assert_eq!( Err(InvalidSyntax("Invalid Integer".into())), match_integer(&mut " -42 ".chars()) );
   }
   
   #[test]
   fn real6_6() {
-    let mut s = "6.6".chars();
-    match match_real(&mut s) {
-      Ok(v) => assert_eq!(6.6, v),
-      Err(e) => {
-        info!("{:?}", e);
-        assert!(false);
-      },
-    }
+    assert_eq!( Ok(6.6), match_real(&mut "6.6".chars()) )
   }
   
   #[test]
   fn real_123_456_() {
-    let mut s = " 123.456 ".chars();
-    match match_real(&mut s) {
-      Ok(v) => assert_eq!(123.456, v),
-      Err(e) => {
-        info!("{:?}", e);
-        assert!(false);
-      },
-    }
+    assert_eq!( Ok(123.456), match_real(&mut " 123.456 ".chars()) )
   }
   
   #[test]
   fn real666_666() {
-    let mut s = "666.666".chars();
-    match match_real(&mut s) {
-      Ok(v) => assert_eq!(666.666, v),
-      Err(e) => {
-        info!("{:?}", e);
-        assert!(false);
-      },
-    }
+    assert_eq!( Ok(666.666), match_real(&mut "666.666".chars()) )
   }
   
   #[test]
   fn real10min() {
-    let mut s = "10min".chars();
-    match match_real(&mut s) {
-      Ok(v) => assert_eq!(10 as f64, v),
-      Err(e) => {
-        info!("{:?}", e);
-        assert!(false);
-      },
-    }
+    assert_eq!( Ok(10 as f64), match_real(&mut "10min".chars()) )
   }
   
   #[test]
   fn real_duration_10min() {
     let mut s = " 10min".chars();
-    match match_real(&mut s) {
-      Ok(v) => assert_eq!(10 as f64, v),
-      Err(e) => {
-        info!("{:?}", e);
-        assert!(false);
-      },
-    }
-    match match_timesuffix(&mut s) {
-      Ok(v) => assert_eq!(60, v),
-      Err(e) => {
-        info!("{:?}", e);
-        assert!(false);
-      },
-    }
+    
+    assert_eq!( Ok(10 as f64), match_real(&mut s) );
+    assert_eq!( Ok(60), match_timesuffix(&mut s) );
   }
   
   #[test]
   fn real_duration_10__min() {
     let mut s = " 10  min".chars();
-    match match_real(&mut s) {
-      Ok(v) => assert_eq!(10 as f64, v),
-      Err(e) => {
-        info!("{:?}", e);
-        assert!(false);
-      },
-    }
-    match match_timesuffix(&mut s) {
-      Ok(v) => assert_eq!(60, v),
-      Err(e) => {
-        info!("{:?}", e);
-        assert!(false);
-      },
-    }
+    
+    assert_eq!( Ok(10 as f64), match_real(&mut s) );
+    assert_eq!( Ok(60), match_timesuffix(&mut s) );
   }
   
   #[test]
   fn real_duration__10_5min__() {
     let mut s = "  10.5min  ".chars();
-    match match_real(&mut s) {
-      Ok(v) => assert_eq!(10.5 as f64, v),
-      Err(e) => {
-        info!("{:?}", e);
-        assert!(false);
-      },
-    }
-    match match_timesuffix(&mut s) {
-      Ok(v) => assert_eq!(60, v),
-      Err(e) => {
-        info!("{:?}", e);
-        assert!(false);
-      },
-    }
+    
+    assert_eq!( Ok(10.5), match_real(&mut s) );
+    assert_eq!( Ok(60), match_timesuffix(&mut s) );
   }
   
   #[test]
   fn real_duration__10_5__min__() {
     let mut s = "  10.5  min  ".chars();
-    match match_real(&mut s) {
-      Ok(v) => assert_eq!(10.5 as f64, v),
-      Err(e) => {
-        info!("{:?}", e);
-        assert!(false);
-      },
-    }
-    match match_timesuffix(&mut s) {
-      Ok(v) => assert_eq!(60, v),
-      Err(e) => {
-        println!("{:?}", e);
-        assert!(false);
-      },
-    }
+    
+    assert_eq!( Ok(10.5), match_real(&mut s) );
+    assert_eq!( Ok(60), match_timesuffix(&mut s) );
   }
   
   #[test]
   fn real12_3__45_6() {
     let mut s = "12.3  45.6".chars();
-    match match_real(&mut s) {
-      Ok(v) => assert_eq!(12.3, v),
-      Err(e) => {
-        println!("{:?}", e);
-        assert!(false);
-      },
-    }
-    match match_real(&mut s) {
-      Ok(v) => assert_eq!(45.6, v),
-      Err(e) => {
-        println!("{:?}", e);
-        assert!(false);
-      },
-    }
+    
+    assert_eq!( Ok(12.3), match_real(&mut s) );
+    assert_eq!( Ok(45.6), match_real(&mut s) );
   }
   
   #[test]
   //#[should_panic(expected = "InvalidSyntax(\"Invalid Integer\")")]
   fn real6_punkt_6() {
-    let mut s = "6..6".chars();
-    match match_real(&mut s) {
-      Ok(_) => assert!(false),
-      Err(e) => {
-        println!("====={:?}", e);
-        assert!(true);
-      },
-    }
+    assert_eq!( Err(InvalidSyntax("Invalid Integer".into())), match_real(&mut "6..6".chars()) )
   }
+  
   
   #[test]
   fn help() {
-    match Input::from( format!("/help") ) {
-      Help => assert!(true),
-      _ => assert!(false),
-    }
+    assert_eq!( Help, Input::from( format!("/help") ) )
   }
   
   #[test]
   fn version() {
-    match Input::from( format!("/version") ) {
-      Version => assert!(true),
-      _ => assert!(false),
-    }
+    assert_eq!( Version, Input::from( format!("/version") ) )
   }
   
   #[test]
   fn start() {
-    match Input::from( format!("/start") ) {
-      Start => assert!(true),
-      _ => assert!(false),
-    }
+    assert_eq!( Start, Input::from( format!("/start") ) )
   }
   
   
   
   #[test]
   fn duration_10min() {
-    let mut s = "10min".chars();
-    match match_duration(&mut s) {
-      Ok(v) => assert_eq!(Duration::from_secs(10*60), v),
-      Err(e) => {
-        info!("{:?}", e);
-        assert!(false);
-      },
-    }
+    assert_eq!( Ok(Duration::from_secs(10*60)), match_duration(&mut "10min".chars()) )
   }
+  
+  
   
   #[test]
   fn match_integer_position() {
     let mut s = "  10  22".chars();
-    match_integer(&mut s).unwrap_or(0); // I do not care here
+    assert_eq!( Ok(10), match_integer(&mut s) ); // I do not care here
     
-    assert_eq!("  22", s.collect::<String>());
+    assert_eq!( "  22", s.collect::<String>() );
   }
   
   #[test]
   fn match_integer_position_spaces() {
     let mut s = "  10  ".chars();
-    match_integer(&mut s).unwrap_or(0); // I do not care here
+    assert_eq!( Ok(10), match_integer(&mut s) ); // I do not care here
     
-    assert_eq!("  ", s.collect::<String>());
+    assert_eq!( "  ", s.collect::<String>() );
   }
   
   #[test]
   fn match_integer_fail_position_spaces() {
     let mut s = "  bla  ".chars();
-    match_integer(&mut s).unwrap_or(0); // I do not care here
+    assert_eq!( Err(InvalidSyntax("Invalid Integer".into())), match_integer(&mut s) ); // I do not care here
     
     assert_eq!("  bla  ", s.collect::<String>());
   }
   
   #[test]
   fn match_integer_fail_neg42() {
-    let mut s = "  -42  ".chars();
-    let r = match_integer(&mut s);
-    
-    println!("Unexpected: {:?}", r);
-    if let Err(_) = r {
-    } else {
-      assert!(false)
-    }
+    assert_eq!( Err( InvalidSyntax("Invalid Integer".into()) ), match_integer(&mut "  -42  ".chars()) )
   }
   
   #[test]
   fn match_full_integer_neg42() {
-    let mut s = "  -42  ".chars();
-    let r = match_full_integer(&mut s);
-    
-    println!("Unexpected: {:?}", r);
-    assert_eq!( -42, r.unwrap_or(0) )
+    assert_eq!( Ok(-42), match_full_integer(&mut "  -42  ".chars()) )
   }
   
   
   
   #[test]
   fn webcam() {
-    match Input::from( format!("/webcam") ) {
-      WebCam{ nth } => if let None = nth { assert!(true) } else { assert!(false) },
-      _ => assert!(false),
-    }
+    assert_eq!( WebCam{ nth: None }, Input::from( format!("/webcam") ) )
   }
   
   #[test]
   fn webcam_negative_1() {
-    let r = Input::from( format!("/webcam -1") );
-    
-    if let InvalidSyntax(_) = r {
-    } else {
-        println!("Unexpected: {:?}", r);
-        assert!(false) ;
-    }
+    assert_eq!( InvalidSyntax("Expected positive Integer".into()), Input::from( format!("/webcam -1") ))
   }
   
   #[test]
   fn webcam_negative_13() {
-    let r = Input::from( format!("/webcam -13") );
-    
-    if let InvalidSyntax(_) = r {
-    } else {
-        println!("Unexpected: {:?}", r);
-        assert!(false) ;
-    }
+    assert_eq!( InvalidSyntax("Expected positive Integer".into()), Input::from( format!("/webcam -13") ))
   }
   
   #[test]
   fn webcam_42() {
-    match Input::from( format!("/webcam 42") ) {
-      WebCam{ nth } => {
-        if let Some(nth) = nth { 
-          assert!( if nth == 42 { true } else { println!("wrong Value: {}", nth); false } ) 
-        } else {
-          println!("expected OptionalInteger");
-          assert!(false)
-        }
-      },
-      _ => assert!(false),
-    }
+    assert_eq!( WebCam{ nth: Some(42) }, Input::from( format!("/webcam 42") ) )
   }
   
   #[test]
   fn webcam_23() {
-    match Input::from( format!("/webcam 23") ) {
-      WebCam{ nth } => {
-        if let Some(nth) = nth { 
-          assert!( if nth == 23 { true } else { println!("wrong Value: {}", nth); false } ) 
-        } else {
-          println!("expected OptionalInteger");
-          assert!(false)
-        }
-      },
-      _ => assert!(false),
-    }
+    assert_eq!( WebCam{ nth: Some(23) }, Input::from( format!("/webcam 23") ) )
   }
   
   
   
   #[test]
   fn grammar() {
-    match Input::from( format!("/grammar") ) {
-      Grammar => assert!(true),
-      _ => assert!(false),
-    }
+    assert_eq!( Grammar, Input::from( format!("/grammar") ) )
   }
 }
