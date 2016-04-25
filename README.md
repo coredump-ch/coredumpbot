@@ -9,7 +9,7 @@ or use out bot: https://telegram.me/CoredumpBot
 
 # Install on Arch Linux
 
-    sudo pacman -S git gcc cargo
+    sudo pacman -S git cargo
     git clone https://github.com/coredump-ch/coredumpbot.git
     cd coredumpbot
     TELEGRAM_BOT_TOKEN=XXXXXXXXXXXXXXXXXXXXXXX cargo run --release
