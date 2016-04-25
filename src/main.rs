@@ -136,6 +136,19 @@ fn main() {
                                     grammar::get_grammar_string(),
                             ));
                         },
+                        Input::Location => {
+                            if let Some(loc) = sac.get_location() {
+                            try!(api.send_location(
+                                    m.chat.id(),
+                                    loc.lat as f32, loc.lon as f32,
+                                    None, None
+                            ));
+                            } else {
+                                try!(send_message(&api, m.chat.id(),
+                                    "No location known".into()
+                                ));
+                            }
+                        },
                         Input::InvalidSyntax( msg ) => {
                             if m.chat.is_user() {
                                 try!(send_message(&api, m.chat.id(),

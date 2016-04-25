@@ -9,7 +9,7 @@ authors = [
 log = "^0.3"
 env_logger = "^0.3"
 telegram-bot = "^0.4"
-#{ git = "https://github.com/dns2utf8/telegram-bot.git", branch = "update_hyper-0.8" }
+#telegram-bot = { git = "https://github.com/dns2utf8/telegram-bot.git", branch = "api_2.0" }
 hyper = "^0.8"
 rustc-serialize = "^0.3"
 spaceapi = "^0.2"

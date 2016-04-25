@@ -3,7 +3,7 @@ use std::io::prelude::*;
 use rustc_serialize::json;
 use hyper::Client;
 use spaceapi::Optional::{self, Value, Absent};
-use spaceapi::{Status};
+use spaceapi::{Status, Location};
 use spaceapi::sensors::{PeopleNowPresentSensor};
 
 use std::time::Duration;
@@ -14,6 +14,7 @@ use std::io;
 pub struct SpaceApiClient {
   last_fetch: i64,
   webcams: Vec<String>,
+  location: Option<Location>,
 }
 
 impl SpaceApiClient {
@@ -21,13 +22,14 @@ impl SpaceApiClient {
     SpaceApiClient{
       last_fetch: 0,
       webcams: Vec::new(),
+      location: None,
     }
   }
   
   pub fn init() -> SpaceApiClient {
     let mut s = SpaceApiClient::new();
     
-    s.fetch_webcams();
+    s.fetch_from_api();
     
     s
   }
@@ -42,12 +44,14 @@ impl SpaceApiClient {
     self.webcams.clone()
   }
 
-  fn fetch_webcams(&mut self) {
+  fn fetch_from_api(&mut self) {
     if let Ok(status) = fetch_status() {
       
       if let Value(cams) = status.cam {
         self.webcams = cams;
       }
+      
+      self.location = Some(status.location);
     }
   }
   
@@ -76,6 +80,10 @@ impl SpaceApiClient {
       Some(p) => &path[p+1..],
       None => path,
     }
+  }
+  
+  pub fn get_location(&self) -> Option<Location> {
+    self.location.clone()
   }
 }
 
