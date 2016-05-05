@@ -138,11 +138,11 @@ fn main() {
                         },
                         Input::Location => {
                             if let Some(loc) = sac.get_location() {
-                            try!(api.send_location(
-                                    m.chat.id(),
-                                    loc.lat as f32, loc.lon as f32,
-                                    None, None
-                            ));
+                              try!(api.send_location(
+                                      m.chat.id(),
+                                      loc.lat as f32, loc.lon as f32,
+                                      None, None
+                              ));
                             } else {
                                 try!(send_message(&api, m.chat.id(),
                                     "No location known".into()
