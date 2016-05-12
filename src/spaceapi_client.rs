@@ -1,28 +1,28 @@
-//extern crate spaceapi;
+extern crate spaceapi;
 use std::io::prelude::*;
 use rustc_serialize::json;
 use hyper::Client;
-use spaceapi::Optional::{self, Value, Absent};
+use spaceapi::Optional::{Value, Absent};
 use spaceapi::{Status, Location};
 use spaceapi::sensors::{PeopleNowPresentSensor};
 
-use std::time::Duration;
 use std::env;
 use std::fs::{self, File};
 use std::io;
+use chrono::{DateTime, UTC};
 
 pub struct SpaceApiClient {
-  last_fetch: i64,
-  webcams: Vec<String>,
-  location: Option<Location>,
+  last_fetch: DateTime<UTC>,
+  status: spaceapi::Status,
 }
 
 impl SpaceApiClient {
   pub fn new() -> SpaceApiClient {
+    let empty_location = json::decode(r#"{ "lon": 0.0, "lat": 0.0 }"#).unwrap();
+    let emtpy_contact = json::decode("{}").unwrap();
     SpaceApiClient{
-      last_fetch: 0,
-      webcams: Vec::new(),
-      location: None,
+      last_fetch: UTC::now(),
+      status: Status::new("no space", "no logo", "no url", empty_location, emtpy_contact, vec![]),
     }
   }
   
@@ -34,24 +34,41 @@ impl SpaceApiClient {
     s
   }
   
-  pub fn fetch_people_now_present(&self) -> ::std::result::Result<u64, String> {
-    let status = try!(fetch_status());
+  pub fn fetch_people_now_present(&mut self) -> ::std::result::Result<String, String> {
+    self.fetch_from_api();
     
-    extract_people_now_present(status)
-  }
-
-  pub fn get_webcams(&self) -> Vec<String> {
-    self.webcams.clone()
+    match self.status.sensors.clone() { // FIXME why is this clone needed here?
+      Absent => Err(format!("response contains no sensors")),
+      Value(sensors) => {
+        match sensors.people_now_present {
+          Absent => Err(format!("response contains no sensors.people_now_present")),
+          Value(sensors) => {
+            if sensors.is_empty() {
+              Err(format!("response.sensors.people_now_present is empty"))
+            } else {
+              let mut r = "".into();
+              
+              for pnp in sensors {
+                let value_s = match pnp.value {
+                  0 => format!("Coredump is closed\nNobody here right now."),
+                  1 => format!("Coredump is open\nOne person is present!"),
+                  people_now_present =>  format!("Coredump is open\n{} people are present!", people_now_present),
+                };
+                r = format!("{}\n{}: {}", r, pnp.location.unwrap_or_else(|| "unknown".into()), value_s);
+              }
+              
+              Ok(r)
+            }
+          }
+        }
+      }
+    }
   }
 
   fn fetch_from_api(&mut self) {
     if let Ok(status) = fetch_status() {
-      
-      if let Value(cams) = status.cam {
-        self.webcams = cams;
-      }
-      
-      self.location = Some(status.location);
+      self.status = status;
+      self.last_fetch = UTC::now();
     }
   }
   
@@ -82,28 +99,15 @@ impl SpaceApiClient {
     }
   }
   
-  pub fn get_location(&self) -> Option<Location> {
-    self.location.clone()
-  }
-}
-
-fn extract_people_now_present(status :Status) -> Result<u64, String> {
-  match status.sensors {
-    Absent => Err(format!("response contains no sensors")),
-    Value(sensors) => {
-      match sensors.people_now_present {
-        Absent => Err(format!("response contains no sensors.people_now_present")),
-        Value(v) => {
-          
-          if v.is_empty() {
-            Err(format!("response.sensors.people_now_present is empty"))
-          } else {
-              Ok( v[0].value )
-          }
-          
-        }
-      }
+  pub fn get_webcams(&self) -> Vec<String> {
+    match self.status.cam.clone() { // FIXME this clone is very ugly, because it should not be needed here.
+      Value(webcams) => webcams, // FIXME the clone should be here.
+      Absent => vec![],
     }
+  }
+  
+  pub fn get_location(&self) -> Location {
+    self.status.location.clone()
   }
 }
 
@@ -160,10 +164,9 @@ fn fetch_binary(url :&String) -> Result<Vec<u8>,io::Error> {
 }
 
 
-
 #[cfg(test)]
 mod test {
-  use super::{extract_people_now_present};
+  //use super::{extract_people_now_present};
   use spaceapi::{Status, Location, Contact};
   use spaceapi::optional::Optional;
   use spaceapi::sensors::{TemperatureSensor, PeopleNowPresentSensor};
@@ -187,6 +190,7 @@ mod test {
     json::decode( &s ).unwrap()
   }
   
+  /*
   #[test]
   fn extract_people_now_present_0() {
     let n = extract_people_now_present( good_response() );
@@ -204,7 +208,7 @@ mod test {
     let e = extract_people_now_present( minimal_response() );
     
     assert_eq!( Err("response contains no sensors.people_now_present".into()), e );
-  }
+  }*/
 }
 
 

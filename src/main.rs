@@ -8,6 +8,7 @@ extern crate rustc_serialize;
 extern crate spaceapi;
 extern crate env_logger;
 #[macro_use] extern crate log;
+extern crate chrono;
 
 use telegram_bot::{Api, ListeningMethod, Message, MessageType, ListeningAction};
 
@@ -113,9 +114,7 @@ fn main() {
                         },
                         Input::Status => {
                             let s = match sac.fetch_people_now_present() {
-                                Ok(people_now_present) if people_now_present > 1 =>  format!("Coredump is open\n{} people are present!", people_now_present),
-                                Ok(people_now_present) if people_now_present == 1 => format!("Coredump is open\nOne person is present!"),
-                                Ok(_) => format!("Coredump is closed\nNobody here right now."),
+                                Ok(people_now_present) => people_now_present,
                                 Err(e) => format!("An error occured 😕\n{}", e),
                             };
                             try!(send_message(&api, m.chat.id(),s));
@@ -137,17 +136,12 @@ fn main() {
                             ));
                         },
                         Input::Location => {
-                            if let Some(loc) = sac.get_location() {
-                              try!(api.send_location(
-                                      m.chat.id(),
-                                      loc.lat as f32, loc.lon as f32,
-                                      None, None
-                              ));
-                            } else {
-                                try!(send_message(&api, m.chat.id(),
-                                    "No location known".into()
-                                ));
-                            }
+                            let loc = sac.get_location();
+                            try!(api.send_location(
+                                    m.chat.id(),
+                                    loc.lat as f32, loc.lon as f32,
+                                    None, None
+                            ));
                         },
                         Input::InvalidSyntax( msg ) => {
                             if m.chat.is_user() {
