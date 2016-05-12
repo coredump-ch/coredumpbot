@@ -29,6 +29,7 @@ or use out bot: https://telegram.me/CoredumpBot
 
     status - Get People now present
     webcam - Get Picture of Webcam
+    location - Get Location of Hackerspace
     subscribe - Subscribe to a Sensor with an Duration
     help - Get Help
     cancel - Cancel Subscription

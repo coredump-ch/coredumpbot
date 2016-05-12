@@ -13,6 +13,7 @@ Every Message starts with one of the following words:
 
 ## [Unreleased]
 
+ - Add /location
 
 ## [0.2.7] - 2016-03-22
 

@@ -3,7 +3,7 @@
 //! Parses Input with this Grammar after trimming the Input and ignoring Whitespaces:
 //! 
 //! Command         := "/" CommandWord
-//! CommandWord     := Status | Subscribe | Cancel | Version | Help | WebCam | Start | Grammar | InvalidSyntax
+//! CommandWord     := Status | Subscribe | Cancel | Version | Help | WebCam | Start | Grammar | Location | InvalidSyntax
 //! Status          := "status" | "crowd"
 //! Subscribe       := "subscribe" SensorSelector Duration
 //! SensorSelector  := SensorString OptionalInteger
@@ -19,6 +19,7 @@
 //! WebCam          := "webcam" OptionalInteger
 //! Start           := "start"
 //! Grammar         := "grammar"
+//! Location        := "location"
 //! InvalidSyntax   := *
 
 // ===========================================================================
@@ -36,6 +37,7 @@ pub enum Input {
   WebCam{ nth :Option<usize> },
   Start,
   Grammar,
+  Location,
   InvalidSyntax( String ),
 }
 #[derive(Debug, PartialEq)]
@@ -108,6 +110,10 @@ fn match_command_word(s :&mut Chars) -> Input {
   
   if starts_with(s, "grammar") {
     return Grammar;
+  } else 
+  
+  if starts_with(s, "location") {
+    return Location;
   } else 
   
   if starts_with(s, "start") {
@@ -645,5 +651,11 @@ mod test {
   #[test]
   fn grammar() {
     assert_eq!( Grammar, Input::from( format!("/grammar") ) )
+  }
+  
+  
+  #[test]
+  fn location() {
+    assert_eq!( Location, Input::from( format!("/location") ) )
   }
 }
