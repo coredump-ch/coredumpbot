@@ -129,7 +129,7 @@ fn fetch_binary(url :&String) -> Result<Vec<u8>,io::Error> {
 }
 
 fn extract_people_now_present(status : Optional<Sensors>) -> Result<String, String> {
-  match status { // FIXME why is this clone needed here?
+  match status {
     Absent => Err(format!("response contains no sensors")),
     Value(sensors) => {
       match sensors.people_now_present {
