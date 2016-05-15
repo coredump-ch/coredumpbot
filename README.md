@@ -27,6 +27,8 @@ or use out bot: https://telegram.me/CoredumpBot
 
 # Set commands on Telegram
 
+Use the [@BotFather](https://telegram.me/BotFather) with the command `/setcommands`.
+
     status - Get People now present
     webcam - Get Picture of Webcam
     location - Get Location of Hackerspace
