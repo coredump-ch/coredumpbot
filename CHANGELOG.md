@@ -13,6 +13,8 @@ Every Message starts with one of the following words:
 
 ## [Unreleased]
 
+## [0.2.9] - 2016-05-17
+
  - Remove /crowd
  - Add temperatures and status text to /status
 
@@ -65,7 +67,8 @@ Every Message starts with one of the following words:
 
  - Initial Release
 
-[Unreleased]: https://github.com/coredump-ch/coredumpbot/compare/v0.2.8...HEAD
+[Unreleased]: https://github.com/coredump-ch/coredumpbot/compare/v0.2.9...HEAD
+[0.2.9]: https://github.com/coredump-ch/coredumpbot/compare/0.2.8...0.2.9
 [0.2.8]: https://github.com/coredump-ch/coredumpbot/compare/0.2.7...0.2.8
 [0.2.7]: https://github.com/coredump-ch/coredumpbot/compare/0.2.6...0.2.7
 [0.2.6]: https://github.com/coredump-ch/coredumpbot/compare/0.2.5...0.2.6
