@@ -22,7 +22,7 @@ script:
   - cargo test
   - cargo doc --no-deps
 after_success:
-  - travis-cargo coveralls --no-sudo --verify
+  - travis-cargo coveralls --no-sudo --verify --exclude-pattern="/target"
 notifications:
   irc:
     channels:
