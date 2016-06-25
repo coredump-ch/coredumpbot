@@ -12,6 +12,7 @@ Every Message starts with one of the following words:
  - `Remove` functionality
 
 ## [Unreleased]
+ - Fix wording of /status
 
 ## [0.2.9] - 2016-05-17
 

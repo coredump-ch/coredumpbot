@@ -137,7 +137,7 @@ fn aggregate_status(status : Status) -> Result<String, String> {
     let pnp = match extract_sensors(sensors.people_now_present, "people_now_present") {
       Ok(o) => {
         o.into_iter().map(|e| {
-  format!("In {} are {} people.\n", e.location.unwrap_or_else(|| "unknown".into()), e.value)
+  format!("There are {n} people at {location}.\n", location=e.location.unwrap_or_else(|| "unknown".into()), n=e.value)
         }).collect()
       },
       Err(e) => e,
@@ -231,7 +231,7 @@ mod test {
   fn aggregate_status_closed() {
     let n = aggregate_status( good_response() );
     
-    assert_eq!( Ok("Open every Monday from 20:00\n\nIn Hackerspace are 0 people.\n\nRaspberry CPU (Hackerspace): 55.7\u{b0}C\n".into()), n );
+    assert_eq!( Ok("Open every Monday from 20:00\n\nThere are 0 people at Hackerspace.\n\nRaspberry CPU (Hackerspace): 55.7\u{b0}C\n".into()), n );
   }
   
   #[test]
@@ -245,7 +245,7 @@ mod test {
   fn aggregate_status_err() {
     let n = aggregate_status( cam_response() );
     
-    assert_eq!( Ok("6 people here right now\n\nIn Hackerspace are 6 people.\n\nRaspberry CPU (Hackerspace): 48.7\u{b0}C\n".into()), n );
+    assert_eq!( Ok("6 people here right now\n\nThere are 6 people at Hackerspace.\n\nRaspberry CPU (Hackerspace): 48.7\u{b0}C\n".into()), n );
   }
 }
 
