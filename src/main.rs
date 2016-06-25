@@ -19,6 +19,8 @@ pub mod spaceapi_client;
 
 pub mod grammar;
 
+mod cached_value;
+
 use std::time::Duration;
 
 fn main() {
