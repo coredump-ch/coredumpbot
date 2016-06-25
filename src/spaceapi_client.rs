@@ -137,7 +137,7 @@ fn aggregate_status(status : Status) -> Result<String, String> {
     let pnp = match extract_sensors(sensors.people_now_present, "people_now_present") {
       Ok(o) => {
         o.into_iter().map(|e| {
-  format!("There are {n} people at {location}.\n", location=e.location.unwrap_or_else(|| "unknown".into()), n=e.value)
+  format!("There are {n} people at {location}.\n", location=e.location.unwrap_or("unknown".into()), n=e.value)
         }).collect()
       },
       Err(e) => e,

@@ -7,7 +7,7 @@ dependencies = [
  "hyper 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
- "spaceapi 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "spaceapi 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "telegram-bot 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -411,7 +411,7 @@ dependencies = [
 
 [[package]]
 name = "spaceapi"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
