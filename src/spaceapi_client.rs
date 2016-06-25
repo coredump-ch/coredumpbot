@@ -205,9 +205,9 @@ fn extract_sensors<T>(sensors : Optional<Vec<T>>, name : &str) -> Result<Vec<T>,
 
 #[cfg(test)]
 mod test {
-  use super::{SpaceApiClient, aggregate_status};
+  use super::{SpaceApiClient, aggregate_status, extract_sensors};
   use spaceapi::{Status, Location, Contact};
-  use spaceapi::optional::Optional;
+  use spaceapi::optional::Optional::{self, Value};
   use spaceapi::sensors::{TemperatureSensor, PeopleNowPresentSensor};
   use rustc_serialize::json::{self};
   
@@ -250,6 +250,14 @@ mod test {
     let n = aggregate_status( cam_response() );
     
     assert_eq!( Ok("6 people here right now\n\nThere are 6 people at Hackerspace.\n\nRaspberry CPU (Hackerspace): 48.7\u{b0}C\n".into()), n );
+  }
+
+  #[test]
+  fn empty_response() {
+    assert_eq!(
+        Err("SpaceAPI response has an empty list of people_now_present sensors.".into()),
+        extract_sensors::<PeopleNowPresentSensor>(Value(vec![]), "people_now_present")
+    )
   }
 }
 
