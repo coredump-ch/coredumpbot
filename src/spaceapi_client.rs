@@ -1,3 +1,5 @@
+//! Communicate with SpaceAPI
+
 extern crate spaceapi;
 use std::io::prelude::*;
 use rustc_serialize::json;
@@ -16,6 +18,7 @@ pub struct SpaceApiClient {
 }
 
 impl SpaceApiClient {
+  /// Create an default initialized SpaceApiClient
   pub fn new() -> SpaceApiClient {
     let empty_location = json::decode(r#"{ "lon": 0.0, "lat": 0.0 }"#).unwrap();
     let emtpy_contact = json::decode("{}").unwrap();
@@ -25,6 +28,7 @@ impl SpaceApiClient {
     }
   }
   
+  /// Create an updated SpaceApiClient
   pub fn init() -> SpaceApiClient {
     let mut s = SpaceApiClient::new();
     

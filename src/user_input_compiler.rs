@@ -1,7 +1,10 @@
+//! Process user input
+
 //! # user_input_compiler
 //!
 //! Parses Input with this Grammar after trimming the Input and ignoring Whitespaces:
 //! 
+//! ```
 //! Command         := "/" CommandWord
 //! CommandWord     := Status | Subscribe | Cancel | Version | Help | WebCam | Start | Grammar | Location | InvalidSyntax
 //! Status          := "status"
@@ -21,6 +24,7 @@
 //! Grammar         := "grammar"
 //! Location        := "location"
 //! InvalidSyntax   := *
+//! ```
 
 // ===========================================================================
 
@@ -57,7 +61,11 @@ macro_rules! extract {
     })
 }
 
-
+/// Use like this:
+///
+/// ```
+/// assert_eq!( Help, Input::from( format!("/help") ) )
+/// ```
 impl From<String> for Input {
   /// Start the Parser/Compiler
   fn from(s :String) -> Input {

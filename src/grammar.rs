@@ -1,3 +1,5 @@
+//! Processes the grammar
+
 use std::io::prelude::*;
 use std::io::BufReader;
 use std::fs::File;
@@ -10,7 +12,8 @@ pub fn get_grammar_string() -> String {
   };
   let mut reader = BufReader::new(f);
   let mut grammar = String::new();
-  let mut i = 100;
+  let mut max_lines_to_read = 100;
+  let mut skipping_header = true;
   
   loop {
     let mut buffer = String::new();
@@ -19,17 +22,28 @@ pub fn get_grammar_string() -> String {
       Ok(_) => {},
       Err(e) => return format!("grammar::read_line error: {:?}", e),
     }
-    
-    grammar = grammar + &*buffer;
-    if buffer == "\n" {
-      return grammar;
+
+
+    if buffer == "//! ```\n" {
+      skipping_header = false;
     }
-    
-    if i > 0 {
-      i -= 1;
+
+    if max_lines_to_read > 0 {
+      max_lines_to_read -= 1;
     } else {
       break;
     }
+
+    if skipping_header {
+      continue;
+    }
+
+    if buffer == "\n" { // Block Change
+      return grammar;
+    }
+
+    let (_, line) = buffer.split_at(4);
+    grammar = grammar + line;
   }
   
   grammar
@@ -46,6 +60,6 @@ mod test {
     println!("alles: {:?}", g);
     // TODO real Test
     assert!(g.is_empty() == false);
-    assert_eq!(format!(":= *\n\n"), g[(g.len()-6)..]);
+    assert_eq!(format!(":= *\n```\n"), g[(g.len()-9)..]);
   }
 }

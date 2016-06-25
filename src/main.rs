@@ -1,6 +1,6 @@
 //! # CoredumpBot
 //! 
-//! Works with https://status.crdmp.ch/ and api.telegram.org
+//! Checks https://status.crdmp.ch/ and communicates via https://api.telegram.org/ to the user.
 
 extern crate telegram_bot;
 extern crate hyper;
@@ -12,12 +12,12 @@ extern crate chrono;
 
 use telegram_bot::{Api, ListeningMethod, Message, MessageType, ListeningAction};
 
-mod user_input_compiler;
+pub mod user_input_compiler;
 use user_input_compiler::Input;
 
-mod spaceapi_client;
+pub mod spaceapi_client;
 
-mod grammar;
+pub mod grammar;
 
 use std::time::Duration;
 
@@ -130,10 +130,15 @@ fn main() {
                             );
                         },
                         Input::Grammar => {
-                            try!(send_message(&api,
-                                    m.chat.id(),
-                                    grammar::get_grammar_string(),
-                            ));
+                            try!(
+                              api.send_message(
+                                m.chat.id(),     // chat_id                  : Integer
+                                grammar::get_grammar_string(),     // text                     : String
+                                Some(telegram_bot::types::ParseMode::Markdown),        // parse_mode               : Option<ParseMode>
+                                None,        // disable_web_page_preview : Option<bool>
+                                None,        // reply_to_message_id      : Option<Integer>
+                                None)        // reply_markup             : Option<ReplyMakrup>
+                            );
                         },
                         Input::Location => {
                             let loc = sac.get_location();
