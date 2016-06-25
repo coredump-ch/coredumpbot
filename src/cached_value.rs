@@ -118,7 +118,7 @@ mod test {
   fn use_with_vec_deque() {
     let mut v : VecDeque<_> = vec![
       CachedValue::new(21, Duration::from_millis(1)),
-      CachedValue::new(42, Duration::from_millis(4)),
+      CachedValue::new(42, Duration::from_millis(42)),
     ].into_iter().collect();
 
     sleep(2);
