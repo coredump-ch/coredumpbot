@@ -13,6 +13,7 @@ Every Message starts with one of the following words:
 
 ## [Unreleased]
  - Fix wording of /status
+ - Change answer to /grammar to Markdown
 
 ## [0.2.9] - 2016-05-17
 
