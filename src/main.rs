@@ -20,6 +20,7 @@ pub mod spaceapi_client;
 pub mod grammar;
 
 pub mod cached_value;
+pub mod user_settings;
 
 use std::time::Duration;
 
@@ -179,7 +180,9 @@ fn main() {
 
 
                 Input::Subscribe{ sensor, duration  } => {
-
+                  try!(send_message(&api, m.chat.id(),
+                          format!("Sensor: {:?}; Duration: {:?}", sensor, duration)
+                  ));
                 }
 
 
