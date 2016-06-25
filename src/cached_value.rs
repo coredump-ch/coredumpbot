@@ -1,6 +1,9 @@
+//! Handle information which expires
+
 use std::time::{Instant, Duration};
 use std::ops::*;
 
+/// A fully generic container for expireing information
 pub struct CachedValue<T> {
   data : T,
   expires : Instant,
@@ -28,6 +31,8 @@ impl<T> Deref for CachedValue<T> {
     &self.data
   }
 }
+
+/// Using this will renew the expiration:
 impl<T> DerefMut for CachedValue<T> {
   fn deref_mut(&mut self) -> &mut T {
     self.expires = Instant::now() + self.lifetime;
@@ -36,13 +41,19 @@ impl<T> DerefMut for CachedValue<T> {
 }
 
 
-trait CacheContainer {
+pub trait CacheContainer {
   fn remove_expired(&mut self);
 }
 
 impl<T> CacheContainer for ::std::vec::Vec<CachedValue<T>> {
   fn remove_expired(&mut self) {
-    // switch to swap_remove()
+    // Maybe switch to swap_remove()
+    self.retain(|&ref e| e.has_expired() == false);
+  }
+}
+impl<T> CacheContainer for ::std::collections::VecDeque<CachedValue<T>> {
+  fn remove_expired(&mut self) {
+    // Maybe switch to swap_remove()
     self.retain(|&ref e| e.has_expired() == false);
   }
 }
@@ -53,9 +64,10 @@ impl<T> CacheContainer for ::std::vec::Vec<CachedValue<T>> {
 #[cfg(test)]
 mod test {
   use super::*;
-  use super::CacheContainer;
+  //use super::CacheContainer;
   use std::time::{Instant, Duration};
   use std::thread;
+  use std::collections::VecDeque;
 
   #[test]
   fn expired_cache() {
@@ -94,6 +106,20 @@ mod test {
       CachedValue::new(21, Duration::from_millis(1)),
       CachedValue::new(42, Duration::from_millis(4)),
     ];
+
+    sleep(2);
+    v.remove_expired();
+
+    assert_eq!(1, v.len());
+    assert_eq!(42, *v[0]);
+  }
+
+  #[test]
+  fn use_with_vec_deque() {
+    let mut v : VecDeque<_> = vec![
+      CachedValue::new(21, Duration::from_millis(1)),
+      CachedValue::new(42, Duration::from_millis(4)),
+    ].into_iter().collect();
 
     sleep(2);
     v.remove_expired();
