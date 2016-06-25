@@ -35,9 +35,25 @@ impl<T> DerefMut for CachedValue<T> {
   }
 }
 
+
+trait CacheContainer {
+  fn remove_expired(&mut self);
+}
+
+impl<T> CacheContainer for ::std::vec::Vec<CachedValue<T>> {
+  fn remove_expired(&mut self) {
+    // switch to swap_remove()
+    self.retain(|&ref e| e.has_expired() == false);
+  }
+}
+
+
+
+
 #[cfg(test)]
 mod test {
   use super::*;
+  use super::CacheContainer;
   use std::time::{Instant, Duration};
   use std::thread;
 
@@ -70,6 +86,20 @@ mod test {
 
     assert_eq!(23, *c);
     assert!(expires_0 < expires_1);
+  }
+
+  #[test]
+  fn use_with_vec() {
+    let mut v = vec![
+      CachedValue::new(21, Duration::from_millis(1)),
+      CachedValue::new(42, Duration::from_millis(4)),
+    ];
+
+    sleep(2);
+    v.remove_expired();
+
+    assert_eq!(1, v.len());
+    assert_eq!(42, *v[0]);
   }
 
   fn sleep(ms : u64) {
