@@ -1,5 +1,6 @@
 # coredumpbot
 [![Build Status](https://travis-ci.org/coredump-ch/coredumpbot.svg?branch=master)](https://travis-ci.org/coredump-ch/coredumpbot)
+[![Coverage Status](https://coveralls.io/repos/github/coredump-ch/coredumpbot/badge.svg?branch=master)](https://coveralls.io/github/coredump-ch/coredumpbot?branch=master)
 
 Start the Bot like this:
 
