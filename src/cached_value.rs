@@ -4,6 +4,7 @@ use std::time::{Instant, Duration};
 use std::ops::*;
 
 /// A fully generic container for expireing information
+#[derive(Debug)]
 pub struct CachedValue<T> {
   data : T,
   expires : Instant,
