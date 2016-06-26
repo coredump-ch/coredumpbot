@@ -12,6 +12,9 @@ Every Message starts with one of the following words:
  - `Remove` functionality
 
 ## [Unreleased]
+
+## [0.2.10] - 2016-06-26
+
  - Fix wording of /status
  - Change answer to /grammar to Markdown
 
@@ -69,7 +72,8 @@ Every Message starts with one of the following words:
 
  - Initial Release
 
-[Unreleased]: https://github.com/coredump-ch/coredumpbot/compare/v0.2.9...HEAD
+[Unreleased]: https://github.com/coredump-ch/coredumpbot/compare/v0.2.10...HEAD
+[0.2.10]: https://github.com/coredump-ch/coredumpbot/compare/0.2.9...0.2.10
 [0.2.9]: https://github.com/coredump-ch/coredumpbot/compare/0.2.8...0.2.9
 [0.2.8]: https://github.com/coredump-ch/coredumpbot/compare/0.2.7...0.2.8
 [0.2.7]: https://github.com/coredump-ch/coredumpbot/compare/0.2.6...0.2.7
