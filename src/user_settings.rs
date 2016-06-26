@@ -43,8 +43,8 @@ impl<T> UserSettings<T> where T : Sized + Send + Debug {
   }
 
   /// You may send your request with this
-  pub fn get_sender(&self) -> Sender<InternalCommunication<T>> {
-    self.sender.clone()
+  pub fn send(&self, msg : T) {
+    self.sender.send( Message(msg) ).unwrap();
   }
 
   /// Maybe refactor to Drop
@@ -74,9 +74,8 @@ mod test {
   #[test]
   fn process_cancel() {
     let us = UserSettings::new();
-    let tx = us.get_sender();
 
-    tx.send( Message( CV::new(42, dur1()) ) ).unwrap();
+    us.send( CV::new(42, dur1()) );
 
     us.join();
   }
