@@ -69,7 +69,7 @@ fn main() {
           MessageType::Text(t) => {
               // Print received text message to stdout
               info!("<{}> {}", name, t);
-              let t = t.replace(&*me.first_name, "");
+              let t = t.replace(&* format!("@{}", me.first_name), "");
               let ts:String = format!("{}", t.trim() );
 
               match Input::from(ts) {
