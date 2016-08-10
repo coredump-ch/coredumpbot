@@ -666,4 +666,9 @@ mod test {
   fn location() {
     assert_eq!( Location, Input::from( format!("/location") ) )
   }
+
+  #[test]
+  fn crap_input() {
+    assert_eq!( InvalidSyntax("Command must start with /".into()), Input::from( format!("not a valid command!") ))
+  }
 }
