@@ -1,5 +1,8 @@
 language: rust
+cache: cargo
 sudo: false
+git:
+  depth: 1
 addons:
   apt:
     packages:
