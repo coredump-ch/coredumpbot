@@ -6,7 +6,9 @@ Start the Bot like this:
 
     TELEGRAM_BOT_TOKEN=XXXXXXXXXXXXXXXXXXXXXXX cargo run
  
-or use out bot: https://telegram.me/CoredumpBot
+or use our bot: https://telegram.me/CoredumpBot
+
+![Screenshot0.png](./Screenshot0.png)
 
 # Install on Arch Linux
 
