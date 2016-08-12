@@ -23,11 +23,13 @@ use std::time::Duration;
 
 fn main() {
     env_logger::init().unwrap();
+
+    let mut sac = spaceapi_client::SpaceApiClient::init();
+    let mut last_processed_message_id = 0;
+
     let max_backoff_seconds = Duration::from_secs(128);
     let min_backoff_seconds = Duration::from_secs(1);
     let mut backoff_seconds = min_backoff_seconds;
-    let mut sac = spaceapi_client::SpaceApiClient::init();
-    let mut last_processed_message_id = 0;
     
     loop {
         // Create bot, test simple API call and print bot information
@@ -38,15 +40,15 @@ fn main() {
         
         // Fetch new updates via long poll method
         let res = listener.listen(|u| {
-            // Restore backoff_seconds, since it works agan
+            // Restore backoff_seconds, since it works again
             backoff_seconds = min_backoff_seconds;
-            
             
             // If the received update contains a message...
             if let Some(m) = u.message {
-                // Discard Messages from Groups the Bot is no longer part of
+
+                // Discard messages from groups the bot is no longer part of
                 if m.message_id == last_processed_message_id {
-                    warn!("Dropped Message: {:?}", m);
+                    warn!("Dropped message: {:?}", m);
                     return Ok(ListeningAction::Continue);
                 } else {
                     last_processed_message_id = m.message_id;
@@ -101,7 +103,7 @@ fn main() {
                                         ));
                                     },
                                     Err(e) => {
-                                        println!("WebCam({:?}) Error: {:?}",nth, e);
+                                        println!("Webcam({:?}) Error: {:?}",nth, e);
                                         // TODO send Error
                                     },
                                 }
@@ -109,19 +111,22 @@ fn main() {
                         },
                         Input::Help => {
                             try!(send_message(&api, m.chat.id(),
-                                    "No such help 😜\nuse /webcam for a snapshot of the 3d printer.\nuse /status for an update on people now present\nuse /grammar to receive the spec".into())
+                                    "No such help 😜\n\
+                                    use /webcam for a snapshot of the 3D printer.\n\
+                                    use /status for an update on people now present\n\
+                                    use /grammar to receive the spec".into())
                             );
                         },
                         Input::Status => {
                             let s = match sac.fetch_aggregated_status() {
                                 Ok(people_now_present) => people_now_present,
-                                Err(e) => format!("An error occured 😕\n{}", e),
+                                Err(e) => format!("An error occurred 😕\n{}", e),
                             };
                             try!(send_message(&api, m.chat.id(),s));
                         },
                         Input::Start => {
                             try!(send_message(&api, m.chat.id(),
-                                    "Welcome to CoredumpBot\nuse /help for a some commands.".into())
+                                    "Welcome to CoredumpBot\nuse /help to see available commands.".into())
                             );
                         },
                         Input::Version => {
@@ -151,7 +156,7 @@ fn main() {
                         Input::InvalidSyntax( msg ) => {
                             if m.chat.is_user() {
                                 try!(send_message(&api, m.chat.id(),
-                                        format!("InvalidSyntax: {}\ntry /grammar", msg)
+                                        format!("Invalid syntax: {}\ntry /grammar", msg)
                                 ));
                             }
                         },
@@ -159,7 +164,7 @@ fn main() {
                             if m.chat.is_user() {
                                 try!(
                                     send_message(&api, m.chat.id(),
-                                        "Unknown Command ... try /help".into())
+                                        "Unknown command. Try /help".into())
                                 );
                             }
                         }, 
@@ -169,7 +174,7 @@ fn main() {
                         if m.chat.is_user() {
                             try!(
                                 send_message(&api, m.chat.id(),
-                                    "Unknown Command ... try /help".into())
+                                    "Unknown command. Try /help".into())
                             );
                         }
                     }
@@ -181,12 +186,14 @@ fn main() {
         });
 
         if let Err(e) = res {
-            warn!("An error occured: {}\nSleeping for {} Seconds", e, backoff_seconds.as_secs());
-            // Rest for 10 Seconds
+            warn!("An error occurred: {}\nSleeping for {} seconds", e, backoff_seconds.as_secs());
+
+            // Wait for a certain amount of seconds
             std::thread::sleep(backoff_seconds);
             
+            // Double the backoff time up to a max value
             if backoff_seconds < max_backoff_seconds {
-                backoff_seconds = backoff_seconds * 2u32;
+                backoff_seconds = backoff_seconds * 2;
             }
         }
     }
