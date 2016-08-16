@@ -13,6 +13,13 @@ Every Message starts with one of the following words:
 
 ## [Unreleased]
 
+ - Fix /help
+
+## [0.3.0] - 2016-08-11
+
+ - Change grammer to be included at compile time
+ - Add screenshot
+
 ## [0.2.10] - 2016-06-26
 
  - Fix wording of /status
@@ -72,7 +79,8 @@ Every Message starts with one of the following words:
 
  - Initial Release
 
-[Unreleased]: https://github.com/coredump-ch/coredumpbot/compare/v0.2.10...HEAD
+[Unreleased]: https://github.com/coredump-ch/coredumpbot/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/coredump-ch/coredumpbot/compare/0.2.10...0.3.0
 [0.2.10]: https://github.com/coredump-ch/coredumpbot/compare/0.2.9...0.2.10
 [0.2.9]: https://github.com/coredump-ch/coredumpbot/compare/0.2.8...0.2.9
 [0.2.8]: https://github.com/coredump-ch/coredumpbot/compare/0.2.7...0.2.8
