@@ -109,7 +109,7 @@ fn main() {
                         },
                         Input::Help => {
                             try!(send_message(&api, m.chat.id(),
-                                    "No such help 😜\nuse /webcam for a snapshot of the 3d printer.\nuse /crowd or /status for an update on people now present\nuse /grammar to receive the spec".into())
+                                    "No such help 😜\nuse /webcam for a snapshot of the 3d printer.\nuse /status for an update on people now present\nuse /grammar to receive the spec".into())
                             );
                         },
                         Input::Status => {
