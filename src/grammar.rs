@@ -1,9 +1,5 @@
 //! Processes the grammar
 
-use std::io::prelude::*;
-use std::io::BufReader;
-use std::fs::File;
-
 /// Returns everything from "src/user_input_compiler.rs" util it passes an empty Line.
 pub fn get_grammar_string() -> String {
   let file = include_str!("../src/user_input_compiler.rs");
