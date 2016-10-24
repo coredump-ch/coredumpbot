@@ -13,6 +13,8 @@ Every Message starts with one of the following words:
 
 ## [Unreleased]
 
+## [0.3.1] - 2016-10-24
+
  - Fix /help
 
 ## [0.3.0] - 2016-08-11
@@ -79,7 +81,8 @@ Every Message starts with one of the following words:
 
  - Initial Release
 
-[Unreleased]: https://github.com/coredump-ch/coredumpbot/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/coredump-ch/coredumpbot/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/coredump-ch/coredumpbot/compare/0.3.0...0.3.1
 [0.3.0]: https://github.com/coredump-ch/coredumpbot/compare/0.2.10...0.3.0
 [0.2.10]: https://github.com/coredump-ch/coredumpbot/compare/0.2.9...0.2.10
 [0.2.9]: https://github.com/coredump-ch/coredumpbot/compare/0.2.8...0.2.9

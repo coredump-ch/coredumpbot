@@ -1,6 +1,6 @@
 [package]
 name = "coredump_bot"
-version = "0.3.0"
+version = "0.3.1"
 authors = [
   "Stefan Schindler <stefan@estada.ch>"
 ]
@@ -8,9 +8,9 @@ authors = [
 [dependencies]
 log = "^0.3"
 env_logger = "^0.3"
-telegram-bot = "^0.4"
+telegram-bot = "^0.5"
 #telegram-bot = { git = "https://github.com/dns2utf8/telegram-bot.git", branch = "api_2.0" }
-hyper = "^0.8"
+hyper = "^0.9"
 rustc-serialize = "^0.3"
 spaceapi = "^0.3"
 #{ git = "https://github.com/coredump-ch/spaceapi-rs.git", branch = "unwrap_or" }
