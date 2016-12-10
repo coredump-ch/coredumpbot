@@ -10,8 +10,15 @@ Every Message starts with one of the following words:
  - `Fix`
  - `Switch` internal change
  - `Remove` functionality
+ - `Update`
 
 ## [Unreleased]
+
+## [0.3.2] - 2017-02-12
+
+ - Add systemd service unit `coredumpbot.service`
+ - Add new category `Update`
+ - Update dependencies
 
 ## [0.3.1] - 2016-10-24
 

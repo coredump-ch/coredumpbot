@@ -1,0 +1,15 @@
+[Unit]
+Description=CoredumpBot
+After=network.target
+
+[Service]
+Environment="RUST_LOG=info"
+Environment="TELEGRAM_BOT_TOKEN=XXXXXXXXXXXXXXX:XXXXXXXXXXX-YYYYYYYYYYYYYY"
+User=non_privileged_user_change_me
+Group=non_privileged_group_change_me
+ExecStart=/home/non_privileged_user_change_me/coredumpbot
+WorkingDirectory=/home/non_privileged_user_change_me/
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
