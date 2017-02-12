@@ -17,6 +17,10 @@ or use our bot: https://telegram.me/CoredumpBot
     cd coredumpbot
     TELEGRAM_BOT_TOKEN=XXXXXXXXXXXXXXXXXXXXXXX cargo run --release
 
+# Install service file
+
+    sudo ln -s $HOME/coredumpbot.service /etc/systemd/system/multi-user.target.wants/coredumpbot.service
+
 # Update local Client
 
     cd coredumpbot
